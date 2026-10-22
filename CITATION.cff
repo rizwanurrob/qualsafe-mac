@@ -1,0 +1,27 @@
+# Citation metadata, in Citation File Format 1.2.0.
+
+cff-version: 1.2.0
+message: "If you use this software in published work, please cite it."
+title: "QualSafe Desktop"
+abstract: >-
+  A local-first desktop application for qualitative analysis: reading and
+  hand-coding documents by character-exact passage, building a hierarchical
+  codebook, boolean and framework-matrix querying, per-code Cohen's kappa
+  between human coders, and optional transformer-assisted first-pass coding of
+  survey open text. All analysis runs on the user's own machine; no text is
+  transmitted.
+type: software
+authors:
+  - given-names: Rizwanur
+    family-names: Rob
+# Kept equal to qualsafe_qt/version.py by tests/test_qt_packaging.py.
+version: "0.99.11-ux8"
+date-released: "2026-09-27"
+license: MIT
+keywords:
+  - qualitative analysis
+  - thematic analysis
+  - inter-rater reliability
+  - natural language processing
+  - institutional research
+  - local-first software

@@ -1,0 +1,46 @@
+response_id,question_text,response_text
+1001,What was the hardest part of using the service this month?,The login kept timing out whenever I switched from phone to laptop and I had to reset my password twice.
+1002,What was the hardest part of using the service this month?,I could not tell if my payment went through because the confirmation screen spun for almost a minute.
+1003,What was the hardest part of using the service this month?,The dashboard has too many tabs and I kept opening the wrong report.
+1004,What was the hardest part of using the service this month?,Finding old invoices was frustrating because search only worked when I typed the exact invoice number.
+1005,What was the hardest part of using the service this month?,I had to contact support three times before someone explained how to update billing details.
+1006,What was the hardest part of using the service this month?,The mobile app crashed every time I tried to upload a photo receipt.
+1007,What was the hardest part of using the service this month?,Nothing major broke but everything felt slow during peak hours.
+1008,What was the hardest part of using the service this month?,I was confused by the new menu labels after the redesign.
+1009,What was the hardest part of using the service this month?,The two-factor code arrived late so I missed my submission deadline.
+1010,What was the hardest part of using the service this month?,I could not compare plan features easily and accidentally upgraded to the wrong tier.
+1011,What was the hardest part of using the service this month?,The export button was hidden inside an advanced menu and I only found it after watching a tutorial.
+1012,What was the hardest part of using the service this month?,The chatbot gave generic replies and did not understand my issue about duplicate charges.
+1013,What was the hardest part of using the service this month?,I trust the product but the error messages are too technical for non-engineers.
+1014,What was the hardest part of using the service this month?,My teammate and I saw different numbers in the same report and we could not tell which was current.
+1015,What was the hardest part of using the service this month?,There are too many clicks to approve one request and it slowed my team down.
+2001,"If you could change one thing, what would it be?",Please add a simple guided setup wizard for first-time users.
+2002,"If you could change one thing, what would it be?",I want faster page loads when switching between customer accounts.
+2003,"If you could change one thing, what would it be?",Offer clearer pricing with a side-by-side feature comparison.
+2004,"If you could change one thing, what would it be?",Bring back the old report layout because it was easier to scan quickly.
+2005,"If you could change one thing, what would it be?",Give us real-time chat with a human agent during business hours.
+2006,"If you could change one thing, what would it be?",Please create better onboarding videos for admins and regular users.
+2007,"If you could change one thing, what would it be?",Allow bulk editing so we do not need to update records one by one.
+2008,"If you could change one thing, what would it be?",A dark mode would be nice but reliability fixes are more important.
+2009,"If you could change one thing, what would it be?",Add integrations with Google Drive and SharePoint to reduce manual uploads.
+2010,"If you could change one thing, what would it be?",I would simplify the notifications page because most alerts are not actionable.
+2011,"If you could change one thing, what would it be?",Please make the mobile app stable before adding new features.
+2012,"If you could change one thing, what would it be?",Show progress checkpoints during long uploads so people know it is still working.
+2013,"If you could change one thing, what would it be?",Add role-based templates so new projects do not start from scratch each time.
+2014,"If you could change one thing, what would it be?",I would improve multilingual support because our team works in English and Spanish.
+2015,"If you could change one thing, what would it be?",Include an audit trail viewer that is readable by non-technical managers.
+3001,What made you trust or distrust the service?,I trust it because once we configured it properly the data sync has been consistent.
+3002,What made you trust or distrust the service?,I am cautious because support response times vary a lot depending on the day.
+3003,What made you trust or distrust the service?,I trust the service because incident updates were transparent during last month's outage.
+3004,What made you trust or distrust the service?,I lost trust after getting two contradictory answers from support about billing policy.
+3005,What made you trust or distrust the service?,The security settings are strong but hard to understand without admin training.
+3006,What made you trust or distrust the service?,I trust it more now that exports include timestamps and source details.
+3007,What made you trust or distrust the service?,I distrust it when reports change after refresh and there is no explanation.
+3008,What made you trust or distrust the service?,The product feels reliable but the release notes are too vague.
+3009,What made you trust or distrust the service?,I trust it because my team has fewer manual errors since adopting it.
+3010,What made you trust or distrust the service?,I distrust the service when status pages say all systems healthy but users still face errors.
+3011,What made you trust or distrust the service?,I trust it because permissions and audit logs help us pass compliance checks.
+3012,What made you trust or distrust the service?,I worry about lock-in because export formats are not always clean.
+3013,What made you trust or distrust the service?,Trust improved after the team fixed a critical bug quickly and followed up clearly.
+3014,What made you trust or distrust the service?,I distrust it when promised features slip repeatedly without clear timelines.
+3015,What made you trust or distrust the service?,Overall I trust the platform but training new staff takes too long.

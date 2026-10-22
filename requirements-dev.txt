@@ -1,0 +1,7 @@
+# Development / test dependencies (install alongside requirements.txt).
+#   pip install -r requirements.txt -r requirements-dev.txt
+-r requirements.txt
+pytest>=8.0,<10.0
+# A per-test limit turns a hang into a named failure with a stack trace.
+# The suite once hung order-dependently for 20+ minutes with no output (review F8).
+pytest-timeout>=2.3,<3

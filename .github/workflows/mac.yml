@@ -1,0 +1,111 @@
+name: mac-desktop
+
+# Builds the macOS app on real Macs, one architecture per runner, and launches it.
+#
+# THIS WORKFLOW HAS NEVER RUN. It was written on a Windows machine that cannot run
+# a Mach-O binary, so every step below is unexercised until the first run. The
+# pure logic it drives (packaging/mac_bundle.py) is covered by
+# tests/test_qt_mac_packaging.py; the steps that need a Mac -- pip on macOS,
+# codesign, otool, hdiutil, launching under a window server -- are what this run
+# is for. Expect to fix things on the first run and treat each failure as a
+# finding, not a flake.
+#
+# It needs the repository on GitHub. `origin` is currently a local folder.
+
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: "Bundle the analysis engine (torch/transformers)"
+        type: boolean
+        default: false
+  push:
+    # The branch this was written on, so pushing it starts the first real build.
+    # (A manual "Run workflow" button only appears once this file is on the
+    # default branch.)
+    branches: [ mac-desktop, mac-ux ]
+    tags: [ "desktop-v*" ]
+  pull_request:
+    paths:
+      - "packaging/**"
+      - "qualsafe_qt/**"
+      - ".github/workflows/mac.yml"
+
+jobs:
+  build:
+    name: macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false      # one architecture failing must not hide the other
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-14
+          # GitHub's last Intel runner label; offered until August 2027. When it
+          # goes, Intel needs a self-hosted runner or the Intel build ends.
+          - arch: x86_64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    # macOS runners on a private repository are billed at a multiple of their
+    # wall-clock minutes, so a hung job should be cut off early. A lite build is
+    # expected to take well under this; raise it if a first run legitimately needs
+    # more.
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Confirm the runner is the architecture we think it is
+        run: |
+          uname -m
+          sw_vers
+          # `uname -m` prints arm64 on Apple Silicon and x86_64 on Intel: the same
+          # names the matrix uses.
+          test "$(uname -m)" = "${{ matrix.arch }}"
+
+      # The whole suite, on macOS, for the first time ever. Offscreen so no window
+      # server is needed. Not blocking yet: a failure here on an untested platform
+      # is information about the app, and should not also prevent the bundle from
+      # being built and inspected. Make this blocking once it has been green.
+      - name: Test suite (offscreen)
+        continue-on-error: true
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-light.txt -r requirements-qt.txt
+          python -m pytest tests -q
+
+      - name: Build the app and disk image
+        run: |
+          python packaging/build_mac.py --arch ${{ matrix.arch }} ${{ inputs.engine && '--engine' || '' }}
+
+      # The build script starts the launcher offscreen. This is the step that
+      # loads the *Cocoa* platform plugin, which offscreen never touches and which
+      # is what a user's Mac actually uses. The runner has a GUI session.
+      - name: Launch the real app and require it to stay up
+        run: |
+          APP="build/mac-${{ matrix.arch }}/QualSafe.app"
+          open -n "$APP"
+          sleep 25
+          if ! pgrep -f "qualsafe_qt" > /dev/null; then
+            echo "::error::QualSafe exited within 25 seconds of being opened"
+            exit 1
+          fi
+          echo "still running:"; pgrep -fl "qualsafe_qt"
+          pkill -f "qualsafe_qt" || true
+
+      - name: Verify the signature survived the trip into the disk image
+        run: |
+          hdiutil attach build/QualSafe-Desktop-*-macOS-${{ matrix.arch }}.dmg -mountpoint /tmp/qs -nobrowse -quiet
+          codesign --verify --verbose=2 /tmp/qs/QualSafe.app
+          hdiutil detach /tmp/qs -quiet
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QualSafe-macOS-${{ matrix.arch }}
+          path: build/QualSafe-Desktop-*-macOS-${{ matrix.arch }}.dmg
+          if-no-files-found: error

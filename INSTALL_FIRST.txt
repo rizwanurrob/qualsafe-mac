@@ -1,0 +1,30 @@
+QualSafe - Quick Start
+========================================
+
+STEP 1. Install Python 3.12 (once), if you don't have it:
+        https://www.python.org/downloads/
+        On Windows, TICK "Add Python to PATH" during setup.
+        (Python 3.9-3.12 all work; 3.13 and 3.14 are NOT yet supported -
+         the machine-learning libraries have no builds for them. Use 3.12.)
+
+STEP 2. Install the app (creates a private environment; takes a few minutes):
+        - Windows:      double-click   install_windows.bat
+        - macOS/Linux:  in a Terminal here, run:   bash install_mac_linux.sh
+
+STEP 3. (Recommended) Check the install is good:
+        - Windows:      .venv\Scripts\python.exe tools\verify_install.py --check-models
+        - macOS/Linux:  .venv/bin/python tools/verify_install.py --check-models
+        It reports anything missing in one line each. "Ready" means go.
+
+STEP 4. Start the app:
+        - Windows:      double-click   run_app_windows.bat
+        - macOS/Linux:  run:           bash run_app_mac_linux.sh
+        Then open the address it prints (usually http://localhost:8501).
+
+You can extract this folder anywhere. Everything runs locally on your machine;
+your data never leaves it. See README.md for full details, requirements, and an
+honest compatibility note for older computers.
+
+Optional (only if you want the "local LLM" coding option): install Ollama from
+https://ollama.com and run:  ollama pull llama3.2:3b
+The app works fully without it, using the built-in transformer models.

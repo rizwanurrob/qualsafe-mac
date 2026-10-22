@@ -1,0 +1,27 @@
+# Desktop (Qt) front end — install alongside the engine requirements.
+#
+#   pip install -r requirements-light.txt -r requirements-qt.txt   # test/dev
+#   pip install -r requirements.txt      -r requirements-qt.txt   # full stack
+#
+# PySide6, NOT PyQt6. PySide6 is LGPL; PyQt6 is GPL/commercial, and this project
+# is MIT and must stay distributable. Same reasoning that made the source project
+# choose pdfplumber over the AGPL PyMuPDF — see requirements.txt.
+#
+# -Essentials, not the full PySide6 meta-package. The app imports exactly three
+# Qt modules — QtCore, QtGui, QtWidgets — and the meta-package adds Addons
+# (QtWebEngine, Qt3D, QtCharts, QtMultimedia) that nothing here touches. Measured
+# on 6.11.1: 643 MB -> 208 MB, and 1.4 GB -> 920 MB across the whole light venv.
+# Verified equivalent: 951 passed / 1 skipped either way, and an offscreen grab of
+# the main window is byte-identical between the two. Matters because the installer
+# ships this tree (RELEASE_READINESS.md §3.2).
+PySide6-Essentials>=6.6,<7.0
+
+# huggingface_hub is imported at call time by core/model_manager.py and
+# core/offline.py, and by tests/test_model_manager.py. It reaches the full
+# install transitively but is absent from requirements-light.txt, so the
+# documented light path fails two tests without it. See PORTED_BACK.md §1.
+huggingface_hub>=0.20,<1.0
+
+# Driving Qt widgets from pytest (qtbot). The Qt tests skip cleanly when PySide6
+# is absent, so the engine suite still runs torch-free and Qt-free.
+pytest-qt>=4.4,<5.0

@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qualsafe"
+version = "4.13.0"
+description = "QualSafe: local-first, privacy-preserving NLP workbench for qualitative analysis of survey and interview data"
+readme = "README.md"
+# Upper bound is real: numpy<2.0 and the torch build pinned below have no
+# wheels for CPython 3.13+, so 3.13/3.14 force a broken source build. Keep this
+# in sync with the version guards in install_windows.bat / install_mac_linux.sh.
+requires-python = ">=3.9,<3.13"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Rizwanur Rob" },
+]
+keywords = [
+    "qualitative-analysis", "nlp", "thematic-analysis", "survey-research",
+    "inter-rater-reliability", "local-first", "ferpa",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+# The heavy ML stack is the real install; the light set (no torch) is enough to
+# run the whole test suite. Kept in sync with requirements.txt / requirements-light.txt.
+dependencies = [
+    "numpy>=1.24,<2.0",
+    "pandas>=2.0,<3.0",
+    "pyyaml>=6.0,<7.0",
+    "scikit-learn>=1.3,<2.0",
+    "xgboost>=2.0,<4.0",
+    "sentence-transformers>=2.7,<4.0",
+    "transformers>=4.40,<5.0",
+    "torch>=2.2,<3.0",
+    "openpyxl>=3.1,<4.0",
+    "xlrd>=2.0.1,<3.0",
+    "streamlit>=1.38,<2.0",
+    "altair>=5.0,<7.0",
+    "vl-convert-python>=1.0,<2.0",
+    "requests>=2.32,<3.0",
+    "tqdm>=4.66,<5.0",
+    "python-docx>=1.1,<2.0",
+    "pdfplumber>=0.11,<1.0",
+]
+
+[project.optional-dependencies]
+# Everything except torch/transformers — enough to run the (mocked) test suite.
+light = [
+    "numpy>=1.24,<2.0", "pandas>=2.0,<3.0", "pyyaml>=6.0,<7.0",
+    "scikit-learn>=1.3,<2.0", "xgboost>=2.0,<4.0", "openpyxl>=3.1,<4.0", "xlrd>=2.0.1,<3.0",
+    "streamlit>=1.38,<2.0",
+    "altair>=5.0,<7.0", "vl-convert-python>=1.0,<2.0", "requests>=2.32,<3.0",
+    "tqdm>=4.66,<5.0", "python-docx>=1.1,<2.0", "pdfplumber>=0.11,<1.0",
+]
+dev = ["pytest>=8.0,<10.0", "pytest-timeout>=2.3,<3"]
+# Optional SPSS .sav ingestion (v3.8.2). Not installed by default; the app gives
+# an actionable "pip install pyreadstat" message when a .sav is loaded without it.
+spss = ["pyreadstat>=1.2,<2.0"]
+
+[project.urls]
+Homepage = "https://github.com/"  # set to the repo URL when published
+Changelog = "https://github.com/"
+
+[project.scripts]
+# Console entry points so the CLIs are available after `pip install`.
+qualsafe-survey = "analyze_survey:main"
+qualsafe-iterative = "iterative_supervised_thematic:main"
+qualsafe-download-models = "tools.download_models:main"
+
+[tool.setuptools]
+# Flat layout: modules live at the repo root (analyze_survey.py, etc.) plus the
+# core/engines/analysis/interview/exports/privacy packages.
+py-modules = ["analyze_survey", "iterative_supervised_thematic", "streamlit_app", "interview_ui"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "engines*", "analysis*", "interview*", "exports*", "privacy*",
+           "tools*", "app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# pytest-timeout (requirements-dev.txt). Deliberately generous: no single test
+# should take five minutes, so past this it is a hang, and it should fail by name.
+timeout = 300
+timeout_method = "thread"

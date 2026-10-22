@@ -1,0 +1,68 @@
+# Iterative supervised + unsupervised thematic analysis template.
+# Use this when you want:
+# 1) Human-coded sample rows first
+# 2) Multi-label supervised coding
+# 3) Unsupervised theme discovery afterward
+
+input:
+  file_path: "./data/sample_survey.csv"
+  text_column: "response_text"
+  question_column: "question_text"
+  id_column: "response_id"
+  encoding: "utf-8"
+  sheet_name: 0
+
+preprocessing:
+  min_chars: 3
+
+  # false (changed in v3.1.1, was true): dropping duplicate responses discards
+  # real respondents. If 40 students all answer "cost", that is the finding —
+  # collapsing them to one row understates the theme's prevalence and biases any
+  # frequency or agreement statistic computed downstream. The iterative workflow
+  # is single-question, so duplicates here are genuinely different people giving
+  # the same answer.
+  drop_duplicates: false
+
+  max_rows: null
+
+iterative_supervised:
+  # Select one specific question/prompt for this iterative cycle.
+  question_value: "What did you like least?"
+
+  # Human coding seed sample size (typically 10 or 20).
+  sample_size: 10
+  random_state: 42
+
+  # How to select which responses to hand-code next:
+  #   auto        (default) — cluster-stratified random for the seed round, then
+  #                 uncertainty-ordered once a model exists (most informative first)
+  #   random      — plain random every round; keeps prevalence estimates unbiased
+  #   stratified  — always cluster-stratified random
+  #   uncertainty — always most-uncertain-first (requires a prior train step)
+  # NOTE: uncertainty-selected samples are no longer random, so kappa computed on
+  # them UNDERSTATES agreement and prevalence estimates are biased. The tool writes
+  # a sampling_note.txt spelling this out; report it. Use `random` if you need an
+  # unbiased prevalence estimate from the sample.
+  sampling: "auto"
+
+  # Multi-label label delimiter in coding sheet.
+  label_delimiter: "|"
+  minimum_labeled_rows: 6
+
+  # Supervised model settings.
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  embedding_batch_size: 32
+  probability_threshold: 0.45
+  uncertain_label: "UNCERTAIN_REVIEW"
+
+  # Unsupervised discovery runs after supervised predictions.
+  unsupervised:
+    fixed_k: null
+    min_k: 2
+    max_k: 5
+    random_state: 42
+    top_terms_per_cluster: 8
+    sample_quotes_per_cluster: 3
+
+  # Folder where coding sheet and outputs are stored.
+  output_dir: "./output_iterative"

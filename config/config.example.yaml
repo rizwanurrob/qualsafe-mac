@@ -1,0 +1,238 @@
+# Copy this file to config/my_project.yaml and edit values for your dataset.
+
+input:
+  # Required: path to your survey data.
+  # Supported file types: .csv, .tsv, .xlsx/.xls, .json
+  file_path: "./data/sample_survey.csv"
+
+  # Required: name of the column that contains free-text responses.
+  text_column: "response_text"
+
+  # Optional: question/prompt column. Needed for question-level thematic analysis.
+  question_column: "question_text"
+
+  # Optional: unique row id column. If omitted, row index is used.
+  id_column: "response_id"
+
+  # Optional for CSV/TSV.
+  encoding: "utf-8"
+
+  # Optional for Excel only.
+  sheet_name: 0
+
+preprocessing:
+  # Remove rows where text is shorter than this length.
+  min_chars: 3
+
+  # Drop exact duplicate response text within the same question.
+  # Default is false — in multi-question surveys, "N/A" or "None" appearing
+  # under different questions is meaningful and should not be dropped.
+  # Set to true only for single-question datasets.
+  drop_duplicates: false
+
+  # Limit rows for quick test runs. Set to null for full dataset.
+  max_rows: null
+
+models:
+  # BERT-style embedding model (SentenceTransformers).
+  # Why this model: strong semantic quality with very fast CPU inference.
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+
+  # Sentiment model (local Hugging Face pipeline).
+  # Why this model: lightweight and robust baseline for positive/negative tone.
+  sentiment_model: "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+
+  # Zero-shot model for custom label tagging.
+  # Why this model: reliable NLI model for flexible custom taxonomy labels.
+  zero_shot_model: "facebook/bart-large-mnli"
+
+# v3: which engine codes themes. "transformer" (default) uses the BERT/zero-shot
+# stack above. "llm" uses a local model via Ollama for nuanced coding + rationales;
+# it falls back to "transformer" automatically if Ollama or the model is unavailable.
+engine:
+  type: "transformer"        # "transformer" | "llm"
+  llm:
+    provider: "ollama"
+    model: "llama3.2:3b"     # must be pulled: `ollama pull llama3.2:3b`
+    temperature: 0.1
+    seed: 42
+    timeout_seconds: 120
+    # v4: how many Ollama calls overlap. Low by default — Ollama queues requests
+    # past its own OLLAMA_NUM_PARALLEL, so more workers rarely helps throughput.
+    concurrency: 3
+
+# v4: unit of analysis. "response" (default) codes whole responses; "sentence"
+# also lays down sentence-level excerpts (for finer human/span coding). Machine
+# coding stays response-level. Agreement/co-occurrence at different units are NOT
+# comparable — the unit is recorded in every run manifest.
+unit: "response"
+
+# Per-engine strict-coding thresholds (optional). NLI entailment scores
+# (transformer) and LLM self-report scores are NOT comparable — an LLM's 0.6 and
+# a zero-shot model's 0.6 mean different things — so the confidence gate is stored
+# per engine. When this block is present, the ACTIVE engine's values override the
+# top1/margin in the strict_coding blocks below. Omit it to use one flat
+# strict_coding for whichever engine runs (the pre-3.2 behavior). Defaults are
+# provisional (LLM starts stricter because its scores cluster high).
+strict_thresholds:
+  transformer:
+    top1_min_score: 0.55
+    min_margin_over_second: 0.10
+  llm:
+    top1_min_score: 0.70
+    min_margin_over_second: 0.10
+
+pipeline:
+  # Batch size used during embedding generation.
+  embedding_batch_size: 32
+
+  # Batch size used by sentiment/zero-shot inference.
+  inference_batch_size: 16
+
+  # Reuse sentiment and theme-coding results for responses this project has
+  # already scored with the same model. On by default, and worth understanding
+  # rather than merely leaving alone:
+  #
+  #   * A run that is interrupted keeps everything it finished. Restarting picks
+  #     up where it stopped instead of at zero. A five-thousand response run
+  #     takes over two hours, so this is not a hypothetical.
+  #   * Adding a label to your codebook costs that one label, not the whole
+  #     codebook again -- provided zero_shot.multi_label is true, where each
+  #     label is scored on its own. With multi_label false the scores are
+  #     normalised across the candidate set, so changing the set correctly
+  #     invalidates every response.
+  #   * Editing a few responses re-codes those responses.
+  #
+  # The cache is derived from response text and lives in the run's output
+  # directory as inference_cache.sqlite. It is a PII artifact and erasure
+  # deletes it. Set false for a run that must leave nothing behind.
+  use_inference_cache: true
+
+  # Usually helpful for cosine-like semantic clustering.
+  normalize_embeddings: true
+
+  # Encode each distinct response text once and reuse the vector for every row
+  # with that text. On datasets where one answer repeats a lot ("None" x 80) this
+  # is a real speedup for the same result.
+  #
+  # Off by default because it is not bit-for-bit reproducible: batching changes
+  # padding, floating-point addition isn't associative, and a last-bit difference
+  # can flip a borderline response into a different cluster. Turn it on for large
+  # duplicate-heavy datasets where speed matters more than exact run-to-run
+  # reproducibility. The setting is recorded in run_manifest.json either way.
+  dedupe_embeddings: false
+
+clustering:
+  # If fixed_k is null, script auto-selects k from min_k..max_k via silhouette score.
+  fixed_k: null
+  min_k: 3
+  max_k: 8
+  random_state: 42
+
+  # Number of top terms to show per cluster summary.
+  top_terms_per_cluster: 10
+
+  # Representative quotes per cluster.
+  sample_quotes_per_cluster: 3
+
+  # v4: flag responses that sit far from their assigned cluster centroid as
+  # "possible_outlier" (they may belong to no theme — worth a human look). Adds
+  # centroid_distance + possible_outlier columns to responses_scored.csv. Set
+  # false to keep the pre-v4 exact column set.
+  flag_outliers: true
+  outlier_percentile: 90.0
+
+sentiment:
+  # Set false to skip sentiment.
+  enabled: true
+
+zero_shot:
+  # Set true to add label tagging with your custom categories below.
+  enabled: true
+
+  # multi_label true means each response can match multiple labels.
+  multi_label: true
+
+  # Replace these labels with your own business themes.
+  labels:
+    - "Pricing concerns"
+    - "Product quality"
+    - "Customer support"
+    - "Ease of use"
+    - "Delivery experience"
+    - "Feature request"
+
+  strict_coding:
+    # Strict mode gates weak/ambiguous classifications into a review bucket.
+    enabled: false
+    uncertain_label: "UNCERTAIN_REVIEW"
+    top1_min_score: 0.55
+    min_margin_over_second: 0.10
+
+    # Optional: emit multiple labels when confidently above threshold.
+    allow_multilabel_output: false
+    min_multilabel_score: 0.50
+    max_multilabel_labels: 3
+
+thematic_analysis:
+  # Theme analysis options that are grounded in the survey question text.
+
+  by_question:
+    # Option A (unsupervised):
+    # Build themes separately for each question instead of one global cluster set.
+    enabled: true
+
+    # Below this threshold, question gets a single fallback theme bucket.
+    min_responses_per_question: 3
+
+    # Optional overrides for question-level clustering.
+    clustering:
+      fixed_k: null
+      min_k: 2
+      max_k: 5
+      random_state: 42
+      top_terms_per_cluster: 8
+      sample_quotes_per_cluster: 2
+
+  by_question_zero_shot:
+    # Option B (supervised):
+    # Use question-specific labels for thematic coding.
+    enabled: false
+    multi_label: true
+
+    # Fallback labels for questions not listed under labels_by_question.
+    default_labels:
+      - "Positive experience"
+      - "Pain point"
+      - "Feature request"
+
+    # Exact-match question keys mapped to custom labels.
+    labels_by_question:
+      "What did you like least?":
+        - "Usability issue"
+        - "Reliability bug"
+        - "Price concern"
+      "What feature is missing?":
+        - "Reporting/analytics"
+        - "Integration request"
+        - "Workflow automation"
+
+    strict_coding:
+      # Recommended for production qualitative coding workflows.
+      enabled: true
+      uncertain_label: "UNCERTAIN_REVIEW"
+      top1_min_score: 0.60
+      min_margin_over_second: 0.12
+      allow_multilabel_output: false
+      min_multilabel_score: 0.55
+      max_multilabel_labels: 2
+
+output:
+  # Output folder for scored responses + summary files.
+  output_dir: "./output"
+
+  # Optional: saves embeddings.npy for later analysis.
+  save_embeddings: false
+
+report:
+  title: "Qualitative Survey Analysis Report"

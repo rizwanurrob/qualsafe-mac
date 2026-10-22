@@ -1,0 +1,17 @@
+# Applied only when building the Intel (x86_64) macOS bundle.
+#
+# PyTorch stopped publishing macOS x86_64 wheels after 2.2.2 (announced for
+# January 2024; the last Intel wheel is torch-2.2.2-cp312-none-macosx_10_9_x86_64).
+# requirements.txt allows "torch>=2.2,<3.0", which is satisfiable only by that one
+# release on Intel -- pinning it here makes the choice explicit instead of leaving
+# it to whatever pip's resolver happens to find.
+#
+# numpy < 2 is torch 2.2's own requirement, and is already the project's pin.
+#
+# Verified by asking pip to resolve the full engine set for macosx x86_64 from
+# another machine (torch 2.2.2, transformers 4.57.6, sentence-transformers 3.4.1,
+# numpy 1.26.4, every one a wheel, no source builds). That proves the set can be
+# installed. It does NOT prove torch 2.2.2 runs under that transformers release:
+# build_mac.py --engine runs a real forward pass to find out.
+torch==2.2.2
+numpy>=1.24,<2.0

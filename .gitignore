@@ -1,0 +1,41 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Project stores (also covered by output*/, listed for safety)
+*.qnw
+
+# Outputs
+output*/
+data/session_inputs/
+data/public_datasets/
+
+# Model cache
+*.npy
+.cache/
+huggingface/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Secrets / env
+.env
+*.env
+app_settings.json
+workspace.json
+label_packs.yaml
+project_backups/

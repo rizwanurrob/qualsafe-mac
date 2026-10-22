@@ -1,0 +1,17 @@
+# Normalize line endings to LF in the repo across platforms.
+* text=auto eol=lf
+
+# Platform scripts need native line endings to run correctly.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.sh  text eol=lf
+*.command text eol=lf
+
+# Treat these as binary (no EOL/diff munging).
+*.pdf binary
+*.docx binary
+*.npy binary
+*.png binary
+*.jpg binary
+*.qnw binary

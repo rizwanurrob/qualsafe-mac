@@ -1,0 +1,38 @@
+[server]
+# false (v3.9.0): headless mode suppresses the automatic browser-tab open, so
+# the launcher window would start the server but never open the app. With it
+# false, Streamlit opens the tab itself once the server is actually ready. The
+# installers pre-seed an empty ~/.streamlit/credentials.toml so this does NOT
+# trigger Streamlit's first-run "Email:" console prompt.
+headless = false
+# false (v3.1.1): with runOnSave on, Streamlit watches the project tree and
+# re-executes the script when a file changes — which, for a tool whose runs write
+# CSVs and .qnw stores back into that tree, meant a finishing run could trigger
+# another run. Analysts should re-run deliberately, from the button.
+runOnSave = false
+port = 8501
+
+[browser]
+gatherUsageStats = false
+
+# ── Brand theme ─────────────────────────────────────────────────────────────
+# Dark theme: dark grey base with a red accent (v3.1.1). Replaces the previous
+# Navy/gold-on-white light theme.
+#
+# These four values control the Streamlit chrome that loads *before* our CSS
+# does — without them the app flashes white on every page load. The full palette,
+# the injected CSS, and the Altair chart theme all live in core/theme.py; keep
+# these in sync with the constants there.
+#
+# Background      #141518   BG          near-black grey
+# Secondary bg    #1C1E22   BG_ELEVATED sidebar, panels
+# Primary (red)   #E03846   RED         buttons, active elements
+# Text            #E8E9EC   TEXT        off-white body text
+# ─────────────────────────────────────────────────────────────────────────────
+[theme]
+base = "dark"
+primaryColor = "#E03846"
+backgroundColor = "#141518"
+secondaryBackgroundColor = "#1C1E22"
+textColor = "#E8E9EC"
+font = "sans serif"

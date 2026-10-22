@@ -1,0 +1,44 @@
+# Interview template (the interview guide) — v3.1 interview mode.
+# Conceptually this is an a-priori codebook: each theme becomes a Code in the
+# shared project store. Copy to config/my_interview_template.yaml and edit.
+
+interview_template:
+  title: "Student Belonging Interview Guide"
+  themes:
+    - id: transition
+      label: "Transition to college"
+      definition: "Adjustment to college routines, academics, and independence."
+      guide_questions:
+        - "How was your first semester?"
+        - "What was the adjustment like?"
+      keywords: [adjustment, first year, orientation, homesick]
+
+    - id: belonging
+      label: "Sense of belonging"
+      definition: "Feeling accepted, connected, and at home on campus."
+      guide_questions:
+        - "Do you feel like you belong here?"
+        - "Where on campus do you feel most at home?"
+      keywords: [belong, community, fit in, welcome]
+
+    - id: support
+      label: "Support systems"
+      definition: "People and services the student relies on when things get hard."
+      guide_questions:
+        - "Who do you turn to when things get hard?"
+        - "Where do you feel most supported on campus?"
+      keywords: [advisor, family, friends, counseling, tutoring]
+
+    - id: finances
+      label: "Work & finances"
+      definition: "Paying for college, employment alongside classes, and cost pressures."
+      guide_questions:
+        - "How do you manage costs and work alongside classes?"
+      keywords: [money, cost, tuition, financial aid, work, job, shifts, books]
+
+    - id: improvement
+      label: "Suggestions for improvement"
+      definition: "Changes the student would make to their experience or the institution."
+      guide_questions:
+        - "If you could change one thing about your experience, what would it be?"
+      keywords: [change, improve, wish, suggestion, fix]
