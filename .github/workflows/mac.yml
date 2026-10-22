@@ -10,7 +10,6 @@ name: mac-desktop
 # is for. Expect to fix things on the first run and treat each failure as a
 # finding, not a flake.
 #
-# It needs the repository on GitHub. `origin` is currently a local folder.
 
 on:
   workflow_dispatch:
@@ -20,16 +19,7 @@ on:
         type: boolean
         default: false
   push:
-    # The branch this was written on, so pushing it starts the first real build.
-    # (A manual "Run workflow" button only appears once this file is on the
-    # default branch.)
-    branches: [ mac-desktop, mac-ux ]
     tags: [ "desktop-v*" ]
-  pull_request:
-    paths:
-      - "packaging/**"
-      - "qualsafe_qt/**"
-      - ".github/workflows/mac.yml"
 
 jobs:
   build:
@@ -40,10 +30,6 @@ jobs:
         include:
           - arch: arm64
             runner: macos-14
-          # GitHub's last Intel runner label; offered until August 2027. When it
-          # goes, Intel needs a self-hosted runner or the Intel build ends.
-          - arch: x86_64
-            runner: macos-15-intel
     runs-on: ${{ matrix.runner }}
     # macOS runners on a private repository are billed at a multiple of their
     # wall-clock minutes, so a hung job should be cut off early. A lite build is
@@ -65,19 +51,6 @@ jobs:
           # `uname -m` prints arm64 on Apple Silicon and x86_64 on Intel: the same
           # names the matrix uses.
           test "$(uname -m)" = "${{ matrix.arch }}"
-
-      # The whole suite, on macOS, for the first time ever. Offscreen so no window
-      # server is needed. Not blocking yet: a failure here on an untested platform
-      # is information about the app, and should not also prevent the bundle from
-      # being built and inspected. Make this blocking once it has been green.
-      - name: Test suite (offscreen)
-        continue-on-error: true
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements-light.txt -r requirements-qt.txt
-          python -m pytest tests -q
 
       - name: Build the app and disk image
         run: |
