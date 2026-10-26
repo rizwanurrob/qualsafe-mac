@@ -218,3 +218,48 @@ def test_a_missing_cache_folder_means_not_downloaded_not_unreadable(monkeypatch,
     monkeypatch.setattr(huggingface_hub, "scan_cache_dir", _missing)
     result = offline.model_cache_status(["some/model"])
     assert result[0]["cached"] is False and result[0]["detail"] == "not downloaded"
+
+
+def test_a_download_clears_the_offline_flags_it_inherited(monkeypatch):
+    """The program arms offline mode in its own environment; a download is a child process that inherits it.
+    Not setting the flags is not enough, or the hub refuses ("We couldn't connect to huggingface.co")."""
+    from core import offline
+
+    for var in offline.OFFLINE_VARS:
+        monkeypatch.setenv(var, "1")
+    offline.enforce_local_mode(allow_downloads=True)
+    assert not any(v in os.environ for v in offline.OFFLINE_VARS)
+    assert os.environ.get("HF_HUB_DISABLE_TELEMETRY") == "1"          # telemetry stays off
+
+
+def test_analysis_stays_offline_when_downloads_are_not_allowed(monkeypatch):
+    from core import offline
+
+    for var in offline.OFFLINE_VARS:
+        monkeypatch.delenv(var, raising=False)
+    offline.enforce_local_mode()
+    assert offline.is_offline_enforced()
+
+
+def test_the_download_child_process_is_started_without_the_offline_flags(monkeypatch):
+    from core import model_manager, offline
+
+    for var in offline.OFFLINE_VARS:
+        monkeypatch.setenv(var, "1")
+    seen = {}
+
+    class _Done:
+        stdout = '{"ok": true, "model": "m", "role": "embedding", "error": ""}'
+        stderr = ""
+        returncode = 0
+
+    def fake_run(cmd, **kwargs):
+        seen["env"] = kwargs.get("env")
+        return _Done()
+
+    monkeypatch.setattr(model_manager.subprocess, "run", fake_run)
+    result = model_manager.download_model("sentence-transformers/all-MiniLM-L6-v2", "embedding")
+    assert result["ok"]
+    assert seen["env"] is not None
+    assert not any(v in seen["env"] for v in offline.OFFLINE_VARS)
+    assert os.environ["HF_HUB_OFFLINE"] == "1"                          # this process stays offline

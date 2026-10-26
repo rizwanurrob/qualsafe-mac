@@ -21,6 +21,7 @@ the cache needs no network); only downloads and removals live here.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -97,8 +98,13 @@ def download_model(
         str(script_path or DOWNLOAD_SCRIPT),
         "--model", repo_id, "--role", role, "--json",
     ]
+    # This process runs offline (the program arms it at start-up), and a child inherits that. A download has
+    # to reach the hub, so the child is started without the offline flags; this process's own are untouched.
+    from core.offline import OFFLINE_VARS
+
+    child_env = {k: v for k, v in os.environ.items() if k not in OFFLINE_VARS}
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=child_env)
     except subprocess.TimeoutExpired:
         return {"ok": False, "message": f"Download timed out after {timeout}s.",
                 "model": repo_id, "role": role}

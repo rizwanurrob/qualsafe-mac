@@ -87,16 +87,26 @@ jobs:
           echo "$out"
           echo "$out" | grep -qE "model\(s\) not downloaded|All models are cached"
 
-      # Only when the engine is bundled (the manual run's "engine" box): fetch the smallest model through the
-      # same script the button uses.
-      - name: Download one small model through the bundled script
+      # Only when the engine is bundled (the manual run's "engine" box): fetch the smallest model the way the
+      # button does, through the program's own download function, from a process that is armed offline exactly
+      # as the running app is. (A download refused with "couldn't connect to huggingface.co" because the child
+      # inherited those flags; the earlier check ran without them and missed it.)
+      - name: Download one small model the way the app does, from an offline-armed process
         if: ${{ inputs.engine }}
         env:
           HF_HOME: ${{ runner.temp }}/hf
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
+          PYTHONPATH: ${{ github.workspace }}/build/mac-${{ matrix.arch }}/QualSafe.app/Contents/Resources
         run: |
           APP="build/mac-${{ matrix.arch }}/QualSafe.app"
-          "$APP/Contents/Resources/python/bin/QualSafe" "$APP/Contents/Resources/tools/download_models.py" \
-            --model sentence-transformers/all-MiniLM-L6-v2 --role embedding --json
+          "$APP/Contents/Resources/python/bin/QualSafe" -c "
+          import sys
+          from core.model_manager import download_model
+          result = download_model('sentence-transformers/all-MiniLM-L6-v2', 'embedding')
+          print(result)
+          sys.exit(0 if result['ok'] else 1)
+          "
 
       - name: Verify the signature survived the trip into the disk image
         run: |

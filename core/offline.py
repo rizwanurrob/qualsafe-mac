@@ -50,7 +50,14 @@ def enforce_local_mode(allow_downloads: bool = False) -> None:
     """
     for var in ALWAYS_VARS:
         os.environ.setdefault(var, "1")
-    if not allow_downloads:
+    if allow_downloads:
+        # The program arms offline mode in its own environment, and a download is started from it as a child
+        # process that inherits that environment. Not setting the flags is not enough: they have to be
+        # removed, or the hub refuses with "We couldn't connect to 'https://huggingface.co'" (found on a
+        # student's Mac). Only the explicit model-download step passes True.
+        for var in OFFLINE_VARS:
+            os.environ.pop(var, None)
+    else:
         for var in OFFLINE_VARS:
             os.environ.setdefault(var, "1")
 
