@@ -603,3 +603,30 @@ def test_the_uninstaller_only_removes_the_app_folder_when_it_is_empty() -> None:
     assert not re.search(r'Type:\s*filesandordirs;\s*Name:\s*"\{app\}"',
                          section), (
         "a recursive delete of {app} would take a user's files with it")
+
+
+# -- the model download script ------------------------------------------------------------------------------
+
+
+def test_the_payload_carries_the_model_download_script_and_nothing_else_from_tools(tmp_path) -> None:
+    """The Models screen's "Download & use" runs `tools/download_models.py` in its own process. An installer
+    without that file failed on a student's Mac with "can't open file ... download_models.py" (and the
+    Windows installer had the same gap). Only that one script ships from `tools`; the rest is for developers."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_payload_under_test", PACKAGING / "build_payload.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert "tools" in module.APP_DIRS and module.TOOLS_SHIPPED == ("download_models.py",)
+    module.copy_application(tmp_path)
+    shipped = sorted(p.name for p in (tmp_path / "tools").iterdir())
+    assert shipped == ["download_models.py"]
+    # and the script the Models screen starts is exactly the one that shipped
+    from core.model_manager import DOWNLOAD_SCRIPT
+
+    assert DOWNLOAD_SCRIPT.name in shipped and DOWNLOAD_SCRIPT.parent.name == "tools"
+
+
+def test_uninstalling_removes_the_tools_folder_too() -> None:
+    script = (PACKAGING / "qualsafe.iss").read_text("utf-8")
+    assert r'Name: "{app}\tools"' in script

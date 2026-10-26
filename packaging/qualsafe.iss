@@ -157,6 +157,7 @@ Type: filesandordirs; Name: "{app}\interview"
 Type: filesandordirs; Name: "{app}\privacy"
 Type: filesandordirs; Name: "{app}\prompts"
 Type: filesandordirs; Name: "{app}\config"
+Type: filesandordirs; Name: "{app}\tools"
 
 ; NOT {app}\data, and NOT {app} itself.
 ;

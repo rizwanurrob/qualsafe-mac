@@ -96,7 +96,12 @@ APP_DIRS = (
     "prompts",          # versioned LLM prompt templates
     "config",           # example configs the UI offers to load
     "data",             # sample files named by the Help walkthroughs (§2.4)
+    "tools",            # only TOOLS_SHIPPED: the model download runs as `tools/download_models.py`
 )
+#: Of the `tools` folder, only these ship. The Models screen's "Download & use" starts a separate process
+#: running this script (so analysis itself never has the network); an installer without it fails with
+#: "can't open file ... download_models.py". The rest of `tools` is for developers.
+TOOLS_SHIPPED = ("download_models.py",)
 APP_FILES = (
     "analyze_survey.py",
     "iterative_supervised_thematic.py",
@@ -381,7 +386,10 @@ def _tree_size(root: Path) -> int:
 
 def copy_application(payload: Path) -> None:
     def ignore(directory: str, names: list[str]) -> set[str]:
-        return {n for n in names if n in EXCLUDE_NAMES}
+        skipped = {n for n in names if n in EXCLUDE_NAMES}
+        if Path(directory).resolve() == (PROJECT_ROOT / "tools").resolve():
+            skipped |= {n for n in names if n not in TOOLS_SHIPPED}
+        return skipped
 
     for name in APP_DIRS:
         source = PROJECT_ROOT / name
