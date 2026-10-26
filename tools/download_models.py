@@ -98,7 +98,7 @@ def download_one(model: str, role: str) -> None:
     if role == "embedding":
         from sentence_transformers import SentenceTransformer
 
-        SentenceTransformer(model)
+        SentenceTransformer(model, device="cpu")   # a download needs the weights, not the GPU
     elif role == "sentiment":
         from transformers import pipeline
 
@@ -125,7 +125,7 @@ def download(models: Dict[str, str]) -> int:
     try:
         from sentence_transformers import SentenceTransformer
 
-        SentenceTransformer(embedding_model)
+        SentenceTransformer(embedding_model, device="cpu")
         print("      done.")
     except Exception as exc:  # noqa: BLE001 - report and continue to the next model
         failures.append(f"{embedding_model}: {exc}")
