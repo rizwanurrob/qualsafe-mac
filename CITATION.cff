@@ -15,7 +15,7 @@ authors:
   - given-names: Rizwanur
     family-names: Rob
 # Kept equal to qualsafe_qt/version.py by tests/test_qt_packaging.py.
-version: "0.99.11-ux8"
+version: "0.99.11-ux9"
 date-released: "2026-09-27"
 license: MIT
 keywords:
