@@ -71,6 +71,33 @@ jobs:
           echo "still running:"; pgrep -fl "qualsafe_qt"
           pkill -f "qualsafe_qt" || true
 
+      # The Models screen's "Download & use" runs tools/download_models.py in its own process, with the
+      # bundle's own Python. A bundle without that file failed on a student's Mac ("can't open file").
+      # --check reports the cache and downloads nothing, so it needs no engine; it proves the script is in
+      # the bundle and starts under the bundle's interpreter.
+      - name: The model download script is in the app and runs
+        env:
+          HF_HOME: ${{ runner.temp }}/hf
+        run: |
+          APP="build/mac-${{ matrix.arch }}/QualSafe.app"
+          test -f "$APP/Contents/Resources/tools/download_models.py"
+          # --check exits 1 when models are missing, which is the normal state on a fresh runner, and 1 on a
+          # crash too; so read what it printed.
+          out=$("$APP/Contents/Resources/python/bin/QualSafe" "$APP/Contents/Resources/tools/download_models.py" --check 2>&1) || true
+          echo "$out"
+          echo "$out" | grep -qE "model\(s\) not downloaded|All models are cached"
+
+      # Only when the engine is bundled (the manual run's "engine" box): fetch the smallest model through the
+      # same script the button uses.
+      - name: Download one small model through the bundled script
+        if: ${{ inputs.engine }}
+        env:
+          HF_HOME: ${{ runner.temp }}/hf
+        run: |
+          APP="build/mac-${{ matrix.arch }}/QualSafe.app"
+          "$APP/Contents/Resources/python/bin/QualSafe" "$APP/Contents/Resources/tools/download_models.py" \
+            --model sentence-transformers/all-MiniLM-L6-v2 --role embedding --json
+
       - name: Verify the signature survived the trip into the disk image
         run: |
           hdiutil attach build/QualSafe-Desktop-*-macOS-${{ matrix.arch }}.dmg -mountpoint /tmp/qs -nobrowse -quiet
