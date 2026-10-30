@@ -80,3 +80,23 @@ def test_uninstall_delegates_to_the_setup_script(monkeypatch):
     monkeypatch.setattr(sle, "remove", fake_remove)
     assert ls.uninstall() is True
     assert calls["called_with"] is not None
+
+
+def test_the_model_download_step_starts_without_the_offline_flags(monkeypatch):
+    """The program arms offline mode and a child inherits it; the one step that must reach the hub clears it."""
+    from tools import setup_laya_env as sle
+
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
+    seen = []
+
+    class _Done:
+        returncode = 0
+        stdout = stderr = ""
+
+    monkeypatch.setattr(sle.subprocess, "run", lambda cmd, **kw: seen.append(kw["env"]) or _Done())
+    monkeypatch.setattr(sle, "app_python", lambda: "python")
+    sle._run(["-c", "pass"])                                  # an ordinary step keeps the flags
+    sle._run(["-c", "pass"], online=True)                     # the download step does not
+    assert seen[0].get("HF_HUB_OFFLINE") == "1"
+    assert "HF_HUB_OFFLINE" not in seen[1] and "TRANSFORMERS_OFFLINE" not in seen[1]

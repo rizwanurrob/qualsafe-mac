@@ -101,7 +101,9 @@ APP_DIRS = (
 #: Of the `tools` folder, only these ship. The Models screen's "Download & use" starts a separate process
 #: running this script (so analysis itself never has the network); an installer without it fails with
 #: "can't open file ... download_models.py". The rest of `tools` is for developers.
-TOOLS_SHIPPED = ("download_models.py",)
+#: `setup_laya_env.py` is the written-codebook screen's coding-engine installer and status check
+#: (`engines/laya_setup.py` imports it); without it that screen fails with ModuleNotFoundError.
+TOOLS_SHIPPED = ("download_models.py", "setup_laya_env.py")
 APP_FILES = (
     "analyze_survey.py",
     "iterative_supervised_thematic.py",
@@ -450,6 +452,20 @@ for name in ["core.project", "core.span_coding", "core.search", "core.autocode",
              "qualsafe_qt.widgets.theme_dialog",
              "interview.parse", "privacy.scan"]:
     importlib.import_module(name)
+
+# The written-codebook screen asks the Laya setup helper what state the coding engine is in before it draws
+# anything, and the model download runs as `tools/download_models.py`. Installers shipped without those
+# scripts (ux8 to ux10) and the screen raised ModuleNotFoundError, so ask both, as the payload.
+from engines import laya_setup
+_laya_state = laya_setup.installation_status()
+assert isinstance(_laya_state, dict) and _laya_state, "the coding-engine status check returned nothing"
+import subprocess as _sp
+for _script, _args in (("download_models.py", ["--check"]), ("setup_laya_env.py", ["--check"])):
+    _path = os.path.join(os.path.dirname(os.path.abspath(importlib.import_module("core.project").__file__)), "..", "tools", _script)
+    assert os.path.isfile(_path), "the payload is missing tools/" + _script
+    _run = _sp.run([sys.executable, _path] + _args, capture_output=True, text=True)
+    _text = _run.stdout + _run.stderr
+    assert "Traceback" not in _text and "No such file" not in _text, "tools/" + _script + " failed: " + _text[-400:]
 
 # The Chart Builder renders every figure through vl-convert and reads legacy .xls
 # through xlrd; neither is optional in the shipped app, so a payload missing one

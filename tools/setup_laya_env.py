@@ -89,10 +89,17 @@ def _no_window() -> int:
     return getattr(subprocess, "CREATE_NO_WINDOW", 0) if sys.platform == "win32" else 0
 
 
-def _run(args, *, pkg_dir: Optional[Path] = None, timeout: float = 60):
+def _run(args, *, pkg_dir: Optional[Path] = None, timeout: float = 60, online: bool = False):
+    """Run the app's Python with the Laya package visible. `online` is for the one step that must reach the
+    model hub: the program arms offline mode in its own environment and a child inherits it, so a download
+    started with those flags is refused. Everything else keeps them."""
     pkg_dir = pkg_dir or default_pkg_dir()
+    env = worker_env(pkg_dir)
+    if online:
+        for var in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"):
+            env.pop(var, None)
     return subprocess.run([app_python(), *args], capture_output=True, text=True, timeout=timeout,
-                          env=worker_env(pkg_dir), creationflags=_no_window())
+                          env=env, creationflags=_no_window())
 
 
 def _log(message: str, as_json: bool) -> None:
@@ -162,7 +169,7 @@ def download_checkpoint(pkg_dir: Optional[Path] = None, *, as_json: bool = False
     _log(f"downloading the model {CHECKPOINT_REPO} (this is the large download)", as_json)
     try:
         result = _run(["-c", _FETCH.format(repo=CHECKPOINT_REPO, offline=False)],
-                      pkg_dir=pkg_dir, timeout=3600)
+                      pkg_dir=pkg_dir, timeout=3600, online=True)
     except (OSError, subprocess.TimeoutExpired) as exc:
         return {"ok": False, "error": f"The model download did not finish: {exc}"}
     if result.returncode != 0:

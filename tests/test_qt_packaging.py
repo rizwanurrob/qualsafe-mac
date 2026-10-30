@@ -617,10 +617,10 @@ def test_the_payload_carries_the_model_download_script_and_nothing_else_from_too
     spec = importlib.util.spec_from_file_location("build_payload_under_test", PACKAGING / "build_payload.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    assert "tools" in module.APP_DIRS and module.TOOLS_SHIPPED == ("download_models.py",)
+    assert "tools" in module.APP_DIRS and module.TOOLS_SHIPPED == ("download_models.py", "setup_laya_env.py")
     module.copy_application(tmp_path)
     shipped = sorted(p.name for p in (tmp_path / "tools").iterdir())
-    assert shipped == ["download_models.py"]
+    assert shipped == ["download_models.py", "setup_laya_env.py"]
     # and the script the Models screen starts is exactly the one that shipped
     from core.model_manager import DOWNLOAD_SCRIPT
 
@@ -630,3 +630,27 @@ def test_the_payload_carries_the_model_download_script_and_nothing_else_from_too
 def test_uninstalling_removes_the_tools_folder_too() -> None:
     script = (PACKAGING / "qualsafe.iss").read_text("utf-8")
     assert r'Name: "{app}\tools"' in script
+
+
+def test_what_the_written_codebook_screen_imports_from_tools_ships() -> None:
+    """`engines/laya_setup.py` imports `tools.setup_laya_env`; the installers of ux8 to ux10 did not ship it, so
+    the written-codebook screen (and its Install button) raised ModuleNotFoundError in an installed copy."""
+    import re
+
+    namespace = _build_script_namespace()
+    needed = set()
+    for source in ("engines/laya_setup.py", "core/model_manager.py", "core/ux/coding_choices.py"):
+        text = (PROJECT_ROOT / source).read_text("utf-8")
+        needed |= {f"{m}.py" for m in re.findall(r"from tools\.(\w+) import|tools/(\w+)\.py", text)
+                   for m in m if m}
+        needed |= {Path(p).name for p in re.findall(r"\"tools\" / \"(\w+\.py)\"", text)}
+    assert needed, "found nothing to check; the pattern is stale"
+    assert needed <= set(namespace["TOOLS_SHIPPED"]), (
+        f"the program imports or runs these from tools/, but the installer does not ship them: "
+        f"{sorted(needed - set(namespace['TOOLS_SHIPPED']))}")
+
+
+def test_the_payload_verification_asks_for_the_laya_status_and_runs_both_tool_scripts() -> None:
+    script = _build_script_namespace()["VERIFY_SCRIPT"]
+    assert "laya_setup.installation_status()" in script
+    assert "download_models.py" in script and "setup_laya_env.py" in script

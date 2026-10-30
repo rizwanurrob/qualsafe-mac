@@ -24,7 +24,7 @@ a regex, so it must stay a plain literal assignment on one line.
 
 from __future__ import annotations
 
-__version__ = "0.99.11-ux10"
+__version__ = "0.99.11-ux11"
 
 #: Shown in the title bar, the About box, and the installer's own metadata.
 APP_NAME = "QualSafe Desktop"
