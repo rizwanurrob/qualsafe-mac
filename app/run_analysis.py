@@ -58,6 +58,7 @@ def render_run_analysis() -> None:
 
     state = st.session_state
     df = state["df"]
+    _render_before_you_run()
     _render_last_run()
     _render_scope()
 
@@ -84,12 +85,32 @@ def render_run_analysis() -> None:
     if st.button(f"Quick preview ({preview_n} answers)", key="run_preview",
                  help="Tries the first answers to show what the output will look like. It is not saved "
                       "as a project."):
+        _dismiss_before_you_run()
         _run_pipeline_ui(df, preview=True)
     if st.button("Run the analysis", key="run_full", type="primary"):
+        _dismiss_before_you_run()
         _run_pipeline_ui(df, preview=False)
 
     with st.expander("More options"):
         _render_more(eta)
+
+
+def _render_before_you_run() -> None:
+    """The short reminder to read first. It has no button of its own (a step keeps to seven controls):
+    it shows until the first run or preview, which is the moment it is for, and that is remembered."""
+    from core.ux import before_you_run
+
+    if before_you_run.is_hidden(st.session_state.get(before_you_run.KEY)):
+        return
+    with st.container(border=True):
+        st.markdown(f"**{before_you_run.TITLE}**")
+        st.markdown(before_you_run.as_text())
+
+
+def _dismiss_before_you_run() -> None:
+    from core.ux import before_you_run
+
+    st.session_state[before_you_run.KEY] = "1"
 
 
 def _init_defaults() -> None:

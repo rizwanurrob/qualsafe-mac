@@ -170,6 +170,10 @@ class Code:
     inclusion_criteria: str = ""
     exclusion_criteria: str = ""
     examples: List[str] = field(default_factory=list)
+    #: Format v10 (book-audit F7, Saldana 2013 p. 25): a passage that looks like it belongs but does not
+    #: ("close, but no"), and a real one that is unusual ("atypical"). Both sharpen the edge of a code.
+    near_misses: List[str] = field(default_factory=list)
+    atypical_examples: List[str] = field(default_factory=list)
     decision_type: CodeDecisionType = "noul"
     rubric_levels: Optional[List[str]] = None    # required when decision_type == "score"
 

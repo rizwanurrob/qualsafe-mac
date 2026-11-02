@@ -38,7 +38,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView, QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox,
-    QFileDialog, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QFileDialog, QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMessageBox, QPlainTextEdit, QProgressBar, QPushButton,
     QRadioButton, QSpinBox, QSplitter, QTableView, QTabWidget, QVBoxLayout, QWidget,
 )
@@ -349,6 +349,36 @@ class PipelineView(QWidget):
         self._refresh_codebook_button()
         return tab
 
+    def _build_before_you_run(self) -> QWidget:
+        """The "Before you run" card: no button of its own (the step is limited to seven controls).
+
+        It is shown until the first run or preview, which is the moment it is for; that is remembered.
+        """
+        from core.ux import before_you_run
+        from qualsafe_qt.windows.main_window import open_settings
+
+        card = QFrame()
+        card.setObjectName("beforeYouRun")
+        card.setFrameShape(QFrame.Shape.StyledPanel)
+        layout = QVBoxLayout(card)
+        layout.addWidget(QLabel(f"<b>{before_you_run.TITLE}</b>"))
+        for line in before_you_run.LINES:
+            layout.addWidget(WrappingLabel(f"• {line}"))
+        self._before_wanted = not before_you_run.is_hidden(open_settings().value(before_you_run.KEY, ""))
+        card.setVisible(self._before_wanted)
+        return card
+
+    def _dismiss_before_you_run(self) -> None:
+        """Called when a run or preview starts: the card has done its job, so remember that."""
+        from core.ux import before_you_run
+        from qualsafe_qt.windows.main_window import open_settings
+
+        self._before_wanted = False
+        self.before_card.setVisible(False)
+        settings = open_settings()
+        settings.setValue(before_you_run.KEY, "1")
+        settings.sync()
+
     def _build_run_tab(self) -> QWidget:
         self.engine = QComboBox()
         self.engine.addItem("Built in: fast, works offline (the default)", "transformer")
@@ -479,6 +509,9 @@ class PipelineView(QWidget):
         self.summary_label = WrappingLabel("")
         self.blockers_label = WrappingLabel("")
 
+        # -- a short reminder to read first, until it is dismissed (book-audit F4) --
+        self.before_card = self._build_before_you_run()
+
         # -- how to code: the choice, with when to use each --
         self.choice_title = QLabel("<b>How do you want to code the answers?</b>")
         self.choice_group = QButtonGroup(self)
@@ -526,6 +559,7 @@ class PipelineView(QWidget):
 
         tab = QWidget()
         layout = QVBoxLayout(tab)
+        layout.addWidget(self.before_card)
         layout.addWidget(self.choice_title)
         layout.addWidget(choices)
         layout.addWidget(self.estimate_label)
@@ -902,6 +936,7 @@ class PipelineView(QWidget):
         own_screen = choice in ("codebook", "hand")       # these take the place of the choices
         for part in self._choice_parts + self._suggest_parts:
             part.setVisible(not own_screen)
+        self.before_card.setVisible(not own_screen and self._before_wanted)
         self.written.setVisible(choice == "codebook")
         self.hand.setVisible(choice == "hand")
         if choice == "codebook":
@@ -1085,6 +1120,7 @@ class PipelineView(QWidget):
             QMessageBox.warning(self, "Could not start the run", str(exc))
             return
 
+        self._dismiss_before_you_run()
         self._running = True
         self._refresh_enabled()
         self.progress.setValue(0)

@@ -28,18 +28,21 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import html
+
 import pandas as pd
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QAction, QKeySequence, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView, QCheckBox, QComboBox, QFileDialog, QFormLayout, QFrame, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QMessageBox, QPushButton, QScrollArea, QSplitter, QStackedWidget, QTableWidget,
+    QInputDialog, QMenu, QMessageBox, QPushButton, QScrollArea, QSplitter, QStackedWidget, QTableWidget,
     QTableWidgetItem,
     QVBoxLayout, QWidget,
 )
 
 from core import guide_mapping as gm
+from core import passage_notes
 from core import speakers
 from core.documents import coding_density, list_documents_in_folder, read_document
 from privacy.scan import scan_frame, summarize_findings
@@ -133,6 +136,10 @@ class DocumentsView(QWidget):
         self.speaker_label = QLabel("")
         self.speaker_label.setWordWrap(True)
         self.speaker_label.setVisible(False)
+        # The research question, kept in view while coding (book-audit F2). A label, not a control.
+        self.question_label = QLabel("")
+        self.question_label.setWordWrap(True)
+        self.question_label.setVisible(False)
         self.next_button = QPushButton("Next: read and code")
         self.next_button.clicked.connect(lambda: self.go_step("code"))
 
@@ -170,6 +177,7 @@ class DocumentsView(QWidget):
         header.addWidget(self.doc_title, 1)
         header.addWidget(self.coverage_label)
         middle_layout.addLayout(header)
+        middle_layout.addWidget(self.question_label)
         middle_layout.addWidget(self.speaker_label)
         middle_layout.addWidget(self.warning_label)
         middle_layout.addWidget(self.reader, 1)
@@ -254,6 +262,9 @@ class DocumentsView(QWidget):
         self.my_codings.setToolTip(
             "Your coded passages in this document. Click one to jump to it.")
         self.my_codings.itemClicked.connect(self._on_my_coding_clicked)
+        # Notes on a passage are on the right-click menu, so the step gains no control (book-audit F6).
+        self.my_codings.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.my_codings.customContextMenuRequested.connect(self._my_coding_menu)
         self.remove_button = QPushButton("Remove selected coding")
         self.remove_button.clicked.connect(self._remove_selected_coding)
         self.remove_button.setEnabled(False)
@@ -529,6 +540,13 @@ class DocumentsView(QWidget):
         self._show_welcome_if_empty()
         self.refresh()
 
+    def _refresh_question(self) -> None:
+        from core import research_question
+
+        text = self._service.research_question() if self._service.is_open else ""
+        self.question_label.setVisible(bool(text))
+        self.question_label.setText(f"<b>{research_question.LABEL}:</b> {html.escape(text)}" if text else "")
+
     def refresh(self) -> None:
         """Full reload: the corpus list, the codebook, and the reader.
 
@@ -536,6 +554,7 @@ class DocumentsView(QWidget):
         `_refresh_after_coding`, which is what the store's change signal is
         wired to.
         """
+        self._refresh_question()
         if not self._service.is_open:
             self.library.setRowCount(0)
             self._refresh_main()
@@ -566,6 +585,7 @@ class DocumentsView(QWidget):
         everything else in the loop put together. Coding is hundreds of
         repetitions; the per-action cost is the feature.
         """
+        self._refresh_question()
         if not self._service.is_open:
             return
         self._refresh_codebook()
@@ -740,12 +760,17 @@ class DocumentsView(QWidget):
         text = self.reader.text          # already loaded; do not re-read the store
         mine = self._service.coding_spans(self._source_id, rater_id=HUMAN_RATER)
         self.my_codings.clear()
+        noted = self._service.passage_note_counts([s["excerpt_id"] for s in mine])
         for span in mine:
             quote = " ".join(text[span["char_start"]:span["char_end"]].split())
-            label = f"[{', '.join(span['codes'])}] {quote[:70]}"
+            mark = f"{passage_notes.MARK} " if noted.get(span["excerpt_id"]) else ""
+            label = f"{mark}[{', '.join(span['codes'])}] {quote[:70]}"
             item = QListWidgetItem(label + ("…" if len(quote) > 70 else ""))
             item.setData(Qt.ItemDataRole.UserRole, span)
-            item.setToolTip(quote[:400])
+            tip = quote[:400]
+            for note in self._service.passage_notes(span["excerpt_id"]) if noted.get(span["excerpt_id"]) else []:
+                tip += f"\n\n{passage_notes.MARK} {note.text}"
+            item.setToolTip(tip)
             self.my_codings.addItem(item)
 
     # -- interaction ---------------------------------------------------------
@@ -849,6 +874,38 @@ class DocumentsView(QWidget):
             if item.data(Qt.ItemDataRole.UserRole)["excerpt_id"] == excerpt_id:
                 self.my_codings.setCurrentItem(item)
                 return
+
+    def _my_coding_menu(self, position) -> None:
+        item = self.my_codings.itemAt(position)
+        if item is None:
+            return
+        excerpt_id = item.data(Qt.ItemDataRole.UserRole)["excerpt_id"]
+        menu = QMenu(self)
+        add = menu.addAction("Add a note to this passage…")
+        add.triggered.connect(lambda: self._add_note(excerpt_id))
+        for note in self._service.passage_notes(excerpt_id):
+            short = " ".join(note.text.split())[:40]
+            action = menu.addAction(f"Delete the note: {short}")
+            action.triggered.connect(lambda _c=False, nid=note.annotation_id: self._delete_note(nid))
+        menu.exec(self.my_codings.viewport().mapToGlobal(position))
+
+    def _add_note(self, excerpt_id: str, text: Optional[str] = None) -> None:
+        if text is None:
+            text, accepted = QInputDialog.getMultiLineText(
+                self, "Note on this passage", "Your note (kept with the project, never sent anywhere):")
+            if not accepted:
+                return
+        try:
+            self._service.add_passage_note(excerpt_id, text)
+        except ValueError:
+            return
+        self._refresh_my_codings()
+        self.status.emit("Note saved.")
+
+    def _delete_note(self, note_id: str) -> None:
+        self._service.delete_passage_note(note_id)
+        self._refresh_my_codings()
+        self.status.emit("Note deleted.")
 
     def _on_my_coding_clicked(self, item: QListWidgetItem) -> None:
         span = item.data(Qt.ItemDataRole.UserRole)

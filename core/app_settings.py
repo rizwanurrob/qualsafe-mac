@@ -32,6 +32,7 @@ PERSISTED_KEYS = (
     "analyst_name",
     "active_project_path",
     "tours_seen",           # JSON list of activity keys whose first-visit tour was shown
+    "before_run_hidden",    # "1" once the Before you run card was dismissed (a flag, never data)
     # Model choices (names only — never data). Let a selected embedding /
     # sentiment / zero-shot model survive a restart (v3.9.7 Model Manager).
     "adv_embedding_model",

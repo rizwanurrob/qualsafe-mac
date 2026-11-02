@@ -29,14 +29,14 @@ TIPS: Dict[str, Tip] = {
         "Use this if one column says which question each answer replies to. Leave it as "
         "(none) if every row answers the same question.", "surveys-load"),
     "survey.question_label": Tip(
-        "Used when there is no question column: the label these answers are reported under.",
+        "Use this when there is no question column. QualSafe shows these answers under this label.",
         "surveys-load"),
     "survey.respondent_id": Tip(
         "A column that identifies each person, so several answers from one person stay "
         "linked to them.", "surveys-load"),
     "survey.details": Tip(
-        "Columns such as class year that you may want to compare themes across. Keep the "
-        "ones you need.", "surveys-load"),
+        "Columns that you can use to compare themes across groups, for example class year. "
+        "Keep the columns that you need.", "surveys-load"),
     # Surveys, step 2: Themes
     "themes.per_question": Tip(
         "Optional. Give one question its own themes, one line each, written as "
@@ -46,7 +46,7 @@ TIPS: Dict[str, Tip] = {
         "The way QualSafe works out its suggestions. The first choice is fine for most "
         "files.", "surveys-code"),
     "code.review_limits": Tip(
-        "Answers where QualSafe is not confident enough are marked Needs your review. "
+        "QualSafe marks an answer Needs your review when it is not sure enough. "
         "Raise the limits to check more answers, or lower them to check fewer.",
         "surveys-code"),
     "written.description": Tip(
@@ -54,22 +54,22 @@ TIPS: Dict[str, Tip] = {
         "each answer, so be specific.", "surveys-code"),
     "written.kind": Tip(
         "Most codes are yes or no: does the answer touch this theme? Choose a rating scale "
-        "only if you want a level, such as none, mild or severe.", "surveys-code"),
+        "only if you want a level, for example none, mild, or severe.", "surveys-code"),
     "written.mode": Tip(
         "Each code on its own lets one answer have several codes. One code per answer picks "
         "the best fit for each answer.", "surveys-code"),
     "written.limits": Tip(
-        "Scores between these two numbers are marked for you to check. Scores outside them "
-        "are treated as a clear yes or a clear no.", "surveys-code"),
+        "QualSafe marks scores between these two numbers for you to check. It treats scores "
+        "outside them as a clear yes or a clear no.", "surveys-code"),
     "written.piece": Tip(
-        "Long answers are split into overlapping pieces so that none is cut off. This sets "
-        "the longest piece.", "surveys-code"),
+        "QualSafe splits a long answer into pieces that overlap, so that no text is cut off. "
+        "This sets the longest piece.", "surveys-code"),
     # Charts
     "chart.kind": Tip(
         "QualSafe guesses what kind of question this is from the answers. Change it if the "
         "guess is wrong, for example when a number is really a choice.", "charts-question"),
     "chart.split": Tip(
-        "Pick a column, such as class year, to see the chart separately for each group.",
+        "Pick a column, for example class year, to see a separate chart for each group.",
         "charts-question"),
     "chart.sharpness": Tip(
         "300 is sharp enough to print. 150 is fine for a slide and makes a smaller file.",
@@ -79,11 +79,11 @@ TIPS: Dict[str, Tip] = {
         "The goal you chose picks a sensible method. Change it only if you or a reviewer "
         "need a particular one.", "surveys-explore"),
     "model.folds": Tip(
-        "The data is split into this many parts, and each part takes a turn at being left "
-        "out to test the result. More parts take longer.", "surveys-explore"),
+        "This sets the number of parts that QualSafe leaves out in turn to test the result. "
+        "More parts take longer.", "surveys-explore"),
     "model.seed": Tip(
-        "A number that makes the chance parts of the analysis repeatable. Use the same "
-        "number to get the same result again.", "surveys-explore"),
+        "A number that makes the chance parts of the analysis repeat in the same way. Use the "
+        "same number to see the same result again.", "surveys-explore"),
 }
 
 #: Row label -> tip id, for labels that mean one thing everywhere they appear.

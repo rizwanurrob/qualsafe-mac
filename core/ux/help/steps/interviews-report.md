@@ -4,13 +4,13 @@
 
 **What to do**
 
-1. Choose the report. The **Methods and reliability appendix** is the one a reviewer or ethics board asks for. Others include the analysis report, the codebook report and the audit trail.
-2. Decide whether quotes appear. It is off unless you switch it on, and what you choose is what is written.
-3. Press the main button and pick where to save.
+1. Choose the report. Reviewers and ethics boards ask for the **Methods and reliability appendix**. Other reports are the analysis report, the codebook report, and the audit trail.
+2. Decide if quotes appear. This option is off until you switch it on. QualSafe writes what you choose.
+3. Press the main button. Choose where to save the file.
 
 **Good to know**
 
-- If you coded with a second person, the methods appendix reports agreement for each code separately.
-- Before you share a report, check it for details that could identify a participant.
+- If a second person coded with you, the methods appendix reports agreement for each code separately.
+- Before you share a report, look for details that can identify a participant.
 
-**Done.** You can return to any earlier step and make the report again.
+**Done.** You can go back to any earlier step and make the report again.

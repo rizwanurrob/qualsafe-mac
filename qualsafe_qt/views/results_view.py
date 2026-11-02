@@ -91,10 +91,11 @@ def _codebook_report(store: Path, out: Path, *, include_examples: bool = False,
 
 
 def _methods_appendix(store: Path, out: Path, *, min_support: int = 5,
-                      **_: object) -> Path:
+                      include_position: bool = False, **_: object) -> Path:
     from exports.methods_appendix import build_methods_appendix
 
-    return build_methods_appendix(str(store), out, min_support=min_support)
+    return build_methods_appendix(str(store), out, min_support=min_support,
+                                  include_position=include_position)
 
 
 def _analysis_report(store: Path, out: Path, *, include_raw_text: bool = False,
@@ -366,6 +367,11 @@ class ResultsView(QWidget):
         _row.addWidget(self.min_support)
         _row.addStretch(1)
 
+        self.methods_position = QCheckBox("Include my position (diary notes under “My position”)")
+        self.methods_position.setToolTip(
+            "Off by default: it is personal. Adds a short section in your own words about what you bring to "
+            "the study. Write it on the Codebook screen, Research diary tab.")
+
         self.joint_descriptor = QComboBox()
         self.joint_descriptor.setToolTip(
             "The subgroup axis — a respondent attribute such as class year or "
@@ -389,7 +395,7 @@ class ResultsView(QWidget):
         _joint_row.addWidget(self.joint_descriptor, 1)
 
         options = {
-            "methods": [self._min_support_row],
+            "methods": [self._min_support_row, self.methods_position],
             "joint": [self._joint_descriptor_row, self.joint_normalize,
                       self.joint_quotes],
             "codebook": [self.codebook_examples],
@@ -498,7 +504,8 @@ class ResultsView(QWidget):
 
     def _options(self, kind: ReportKind) -> dict:
         if kind.key == "methods":
-            return {"min_support": self.min_support.value()}
+            return {"min_support": self.min_support.value(),
+                    "include_position": self.methods_position.isChecked()}
         if kind.key == "codebook":
             return {"include_examples": self.codebook_examples.isChecked()}
         if kind.key == "report":

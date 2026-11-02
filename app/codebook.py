@@ -18,6 +18,7 @@ from core.ux.fields import origin_label
 
 from app.shared.projects import list_project_runs
 from app.shared.widgets import render_memo_section
+from core import research_question
 
 
 def render_codebook() -> None:
@@ -31,6 +32,14 @@ def render_codebook() -> None:
     sel = st.selectbox("Project", [p.name for p in runs], key="cb_run")
     run_dir = next(p for p in runs if p.name == sel)
     with Project.open(run_dir / "project.qnw") as proj:
+        # The research question: your own words, kept with the project and shown while you code.
+        stored_question = research_question.get(proj)
+        typed = st.text_input(research_question.LABEL, value=stored_question, key=f"cb_rq_{sel}",
+                              max_chars=research_question.MAX_CHARS, placeholder=research_question.PROMPT,
+                              help="Kept with the project and shown on the coding screens, so it stays in "
+                                   "view while you code. It is your own wording; nothing is sent anywhere.")
+        if research_question.clean(typed) != stored_question:
+            research_question.set(proj, typed)
         codes = proj.get_codebook()
         if not codes:
             st.info("This project has no codes.")
@@ -57,10 +66,30 @@ def render_codebook() -> None:
         new_parent = st.selectbox("Parent code", parent_opts, index=p_idx,
                                   format_func=lambda cid: "(none)" if cid == "(none)" else name_by_id[cid],
                                   key="cb_parent")
+        with st.expander("Coding rules"):
+            use_when = st.text_area("Use this code when", value=cur.inclusion_criteria, key=f"cb_use_{pick}",
+                                    height=70)
+            leave_out = st.text_area("Leave it out when", value=cur.exclusion_criteria, key=f"cb_out_{pick}",
+                                     height=70)
+            examples = st.text_area("Examples (one per line)", value="\n".join(cur.examples),
+                                    key=f"cb_ex_{pick}", height=70)
+            near = st.text_area("Close, but no (one per line)", value="\n".join(cur.near_misses),
+                                key=f"cb_near_{pick}", height=70,
+                                help="Passages that look as if they belong to this code but do not.")
+            odd = st.text_area("Unusual, but yes (one per line)", value="\n".join(cur.atypical_examples),
+                               key=f"cb_odd_{pick}", height=70,
+                               help="Real examples of this code that are unusual.")
+
+        def _lines(text: str):
+            return [line.strip() for line in text.splitlines() if line.strip()]
+
         if st.button("Save code changes", key="cb_save"):
             try:
                 proj.rename_code(pick, new_name)
                 proj.set_code_definition(pick, new_def)
+                proj.set_code_structured_fields(
+                    pick, inclusion_criteria=use_when.strip(), exclusion_criteria=leave_out.strip(),
+                    examples=_lines(examples), near_misses=_lines(near), atypical_examples=_lines(odd))
                 proj.set_code_parent(pick, None if new_parent == "(none)" else new_parent)
                 st.success("Saved.")
                 st.rerun()

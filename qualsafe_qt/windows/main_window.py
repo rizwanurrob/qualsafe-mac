@@ -81,6 +81,8 @@ _PERSISTED_KEYS = ("last_project_path", "analyst_name", "theme_mode",
                    "recent_projects",
                    # Which first-visit tours have been seen: activity names only.
                    "tours_seen",
+                   # A flag: the "Before you run" card was dismissed.
+                   "before_run_hidden",
                    "window_geometry", "window_state",
                    # Per-role model ids chosen in the Model Manager. These are
                    # Hugging Face repo names, not data -- the whitelist rule is

@@ -1,7 +1,7 @@
 # How do I get what a reviewer asks for?
 
-1. Finish coding and review the answers marked **Needs your review**.
-2. On **Report**, choose the **Methods and reliability appendix** and press the main button.
-3. Read it before you share it. It says how the answers were coded and by whom, how well the coders agreed on each theme, and the limits that go with those numbers.
+1. Finish the coding. Review the answers marked **Needs your review**.
+2. On **Report**, choose the **Methods and reliability appendix**. Press the main button.
+3. Read the appendix before you share it. It says how people and the computer coded the answers. It says how well the coders agreed on each theme. It also gives the limits of those numbers.
 
-**Good to know.** The appendix has no response text. If you also share the analysis report, check first whether verbatim quotes are switched on. They are off unless you turn them on.
+**Good to know.** The appendix has no response text. If you also share the analysis report, first check if verbatim quotes are on. They are off until you switch them on.

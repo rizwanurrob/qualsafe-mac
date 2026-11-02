@@ -1,18 +1,18 @@
 # Surveys, step 4: Explore the results
 
-**What this step is for.** Read what the coding says: how often each theme comes up, and for whom.
+**What this step is for.** Read what the coding shows. See how often each theme comes up, and for which people.
 
 **What to do**
 
-- **Analysis** shows counts and breakdowns. Click a bar to read the answers behind the number.
-- **Charts of themes** turns a result into a picture you can copy into a slide.
-- **Search** finds answers by word or by theme.
-- **Model an outcome** asks which respondent details go with a theme. It says so plainly when the data is too small to tell you anything.
+- Open **Analysis** to see counts and breakdowns. Click a bar to read the answers behind the number.
+- Open **Charts of themes** to make a picture of a result. You can copy the picture into a slide.
+- Use **Search** to find answers by word or by theme.
+- Use **Model an outcome** to ask which respondent details go with a theme. If the data is too small, QualSafe says so clearly.
 
 **Good to know**
 
-- Every number can be traced to the answers behind it.
-- A warning next to a figure (for example, "few answers") is there to be read. Press **Why?** beside it for the reason.
+- You can trace every number to the answers behind it.
+- A warning next to a figure is there for you to read. An example is "few answers". Press **Why?** next to the warning to see the reason.
 - **Query** and other advanced tools are under **More options**.
 
 **Next:** Report.

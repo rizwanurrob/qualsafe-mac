@@ -110,10 +110,10 @@ To break themes down by respondent attributes.
 3. Tick the `Q1_success`, `Q2_barrier`, and `Q3_support` columns under **Question
    columns**.
 4. Set **Respondent id** to `Response_ID`.
-5. Under **Descriptors**, tick `First_Generation`, `Class_Year`, and
+5. Under **Respondent details to keep**, tick `First_Generation`, `Class_Year`, and
    `Student_Type`.
 6. Set themes and run as in walkthrough B.
-7. Open **Analysis → Code × Descriptor**, choose `First_Generation`, and switch
+7. Open **Analysis → By group**, choose `First_Generation`, and switch
    to **% within group** — subgroups differ in size, and percentages are what
    make them comparable.
 
@@ -143,7 +143,7 @@ way: click **Open a CSV or Excel file…**. The file is never changed.
 # What QualSafe is
 
 A **local-first qualitative analysis workbench**. A codebook you own, excerpts
-that trace back to their source, descriptors for mixed methods, co-occurrence,
+that trace back to their source, respondent details for mixed methods, co-occurrence,
 inter-rater reliability — plus automation that can do a first pass of coding.
 
 **Everything runs on your machine.** Your text is never uploaded. The only steps
@@ -285,7 +285,7 @@ model marked *B* registers as an A+B co-occurrence that neither of you claimed �
 so the screen says when it is mixing coders, and offers a filter for a single
 coder's matrix.
 
-**Code × Descriptor** breaks themes down by a respondent attribute. Use
+**By group** breaks themes down by a respondent detail. Use
 **% within group** when subgroups differ in size: 10 of 20 first-generation
 students is a bigger finding than 15 of 200 others.
 
@@ -410,7 +410,7 @@ reader.
 
 Cases down the side, themes across the top, each cell summarising what that case
 said about that theme. Create cases on the **Cases** tab — singly, or in bulk
-from a descriptor, which is the quick way to make survey data case-based.
+from a respondent detail, which is the quick way to make survey data case-based.
 
 Cells can be drafted by a local LLM if you have Ollama. Every quote it offers is
 **checked verbatim against the source**, anything altered is dropped and
@@ -722,7 +722,7 @@ every run so those numbers are recoverable rather than remembered.
 
 ## Erasing a participant
 
-Removing a respondent removes their sources, excerpts, codings, and descriptors,
+Removing a respondent removes their sources, excerpts, codings, and respondent details,
 along with their cached embeddings. The project is backed up first.
 """),
 

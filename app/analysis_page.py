@@ -288,7 +288,7 @@ def _render_prevalence_intervals(coding, desc, key) -> None:
 def _render_joint_display_tab(coding, desc, store_path) -> None:
     """The mixed-methods deliverable: quant, qual, and the inference between them.
 
-    The Code × Descriptor tab answers the question. This tab is the *publishable
+    The By group tab answers the question. This tab is the *publishable
     form* of the answer — the named artifact of mixed-methods research, which
     puts the numbers and the words side by side and leaves a column for what the
     analyst concludes from reading them together.

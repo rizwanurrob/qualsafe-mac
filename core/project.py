@@ -70,8 +70,10 @@ from core.model import (
 # v9 (4.13): project_events -- a dated record of every analytic decision
 #     (codebook edits, memos, adjudication, imports, erasure); memos gain
 #     created_at / updated_at. The audit trail export reads both.
+# v10 (book-audit F7): two more example lists on a code, near_misses_json (looks right,
+#     is not) and atypical_json (real but unusual); both default to an empty list.
 # Bumping this requires an entry in core/migrations.py MIGRATIONS.
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 
 
 def _default_actor() -> str:
@@ -135,7 +137,9 @@ CREATE TABLE IF NOT EXISTS codes (
     exclusion_criteria TEXT DEFAULT '',
     examples_json TEXT DEFAULT '[]',
     decision_type TEXT DEFAULT 'noul',
-    rubric_levels_json TEXT
+    rubric_levels_json TEXT,
+    near_misses_json TEXT DEFAULT '[]',
+    atypical_json TEXT DEFAULT '[]'
 );
 CREATE TABLE IF NOT EXISTS code_applications (
     application_id TEXT PRIMARY KEY,
@@ -760,13 +764,14 @@ class Project:
         self._conn.execute(
             "INSERT INTO codes(code_id, name, definition, parent_id, origin, created_by, "
             "weight_kind, weight_min, weight_max, inclusion_criteria, exclusion_criteria, "
-            "examples_json, decision_type, rubric_levels_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "examples_json, decision_type, rubric_levels_json, near_misses_json, atypical_json) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (cid, code.name, code.definition, code.parent_id, code.origin, code.created_by,
              ws.kind if ws else None, ws.min_value if ws else None, ws.max_value if ws else None,
              code.inclusion_criteria, code.exclusion_criteria, json.dumps(code.examples),
              code.decision_type,
-             json.dumps(code.rubric_levels) if code.rubric_levels is not None else None),
+             json.dumps(code.rubric_levels) if code.rubric_levels is not None else None,
+             json.dumps(code.near_misses), json.dumps(code.atypical_examples)),
         )
         self._event("code_created", f"Code created: {code.name}", target_type="code",
                     target_id=cid, detail={"origin": code.origin, "created_by": code.created_by,
@@ -790,6 +795,8 @@ class Project:
             examples=json.loads(r["examples_json"]) if ("examples_json" in keys and r["examples_json"]) else [],
             decision_type=(r["decision_type"] if "decision_type" in keys else "noul") or "noul",
             rubric_levels=json.loads(rubric_json) if rubric_json else None,
+            near_misses=json.loads(r["near_misses_json"]) if ("near_misses_json" in keys and r["near_misses_json"]) else [],
+            atypical_examples=json.loads(r["atypical_json"]) if ("atypical_json" in keys and r["atypical_json"]) else [],
         )
 
     def set_code_structured_fields(
@@ -797,6 +804,7 @@ class Project:
         exclusion_criteria: Optional[str] = None, examples: Optional[List[str]] = None,
         decision_type: Optional[CodeDecisionType] = None,
         rubric_levels: Optional[List[str]] = None,
+        near_misses: Optional[List[str]] = None, atypical_examples: Optional[List[str]] = None,
     ) -> None:
         """Update a code's structured-coding fields. Only given fields change.
 
@@ -817,6 +825,10 @@ class Project:
             sets.append("decision_type = ?"); params.append(decision_type)
         if rubric_levels is not None:
             sets.append("rubric_levels_json = ?"); params.append(json.dumps(rubric_levels))
+        if near_misses is not None:
+            sets.append("near_misses_json = ?"); params.append(json.dumps(near_misses))
+        if atypical_examples is not None:
+            sets.append("atypical_json = ?"); params.append(json.dumps(atypical_examples))
         if not sets:
             return
         params.append(code_id)
@@ -827,6 +839,10 @@ class Project:
                                      ("exclusion_criteria", exclusion_criteria),
                                      ("examples", None if examples is None
                                       else f"{len(examples)} example(s)"),
+                                     ("near_misses", None if near_misses is None
+                                      else f"{len(near_misses)} close-but-no example(s)"),
+                                     ("atypical_examples", None if atypical_examples is None
+                                      else f"{len(atypical_examples)} atypical example(s)"),
                                      ("decision_type", decision_type),
                                      ("rubric_levels", rubric_levels)) if v is not None}
         self._event("code_criteria_changed",

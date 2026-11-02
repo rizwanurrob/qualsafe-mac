@@ -1,9 +1,9 @@
 # How do I come back to my work later?
 
-QualSafe keeps your place in each activity. On **Home**, each activity shows **Continue** with the file or project you were on. **Start over** clears the saved place for that activity; it does not delete your files.
+QualSafe keeps your place in each activity. On **Home**, each activity shows **Continue** with the file or project that you used last. Press **Start over** to clear the saved place for that activity. This does not delete your files.
 
 **Good to know.**
 
-- Your place is saved as you work, and when you close the program.
-- What is saved is where you were and your settings. It never includes any response text, and it never includes the privacy confirmation: you confirm that again each time you load a file.
-- Projects are ordinary files you saved yourself (ending in .qnw), so you can also open one from the **File** menu.
+- QualSafe saves your place as you work. It also saves your place when you close the program.
+- QualSafe saves where you were and your settings. It never saves response text. It never saves the privacy confirmation. You must confirm again each time you load a file.
+- A project is an ordinary file that you saved yourself. It ends in .qnw. You can also open a project from the **File** menu.

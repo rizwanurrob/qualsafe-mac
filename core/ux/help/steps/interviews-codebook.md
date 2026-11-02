@@ -1,16 +1,16 @@
 # Interviews, step 3: Tidy your codebook
 
-**What this step is for.** Keep your list of codes clear and consistent: rename, define and group them.
+**What this step is for.** Keep your list of codes clear and consistent. Rename the codes, define them, and group them.
 
 **What to do**
 
-- **Add a code**, or rename one. Give each a short definition, so you and anyone checking your work mean the same thing.
-- **Find similar codes** points out codes that may overlap. **Merge the selected pair** combines them; the coding moves with them.
-- **Tag the codebook as it is now** saves a named version, so you can go back to it.
-- **Save these codes to a file** and **Add codes from a file** let you share a codebook with a colleague.
+- Press **Add a code**, or rename a code. Give each code a short definition. Then you and the people who check your work mean the same thing.
+- Press **Find similar codes** to see codes that can overlap. Press **Merge the selected pair** to combine them. The coding moves with them.
+- Press **Tag the codebook as it is now** to save a named version. Later, you can go back to it.
+- Press **Save these codes to a file** or **Add codes from a file** to share a codebook with a colleague.
 
 **Good to know**
 
-- Changing a definition does not change passages you have already coded.
+- A change to a definition does not change passages that you already coded.
 
 **Next:** Explore.

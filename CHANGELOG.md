@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+* **Six items from the book-by-book review (both builds).**
+  *Before you run*: three plain lines above the Run step (read some answers first, check suggestions against
+  the answers, do not report a count from unreviewed suggestions), shown until the first run or preview and
+  then never again. *Research question*: one line kept with the project, edited on the Codebook screen and
+  shown while you code and at the top of the methods appendix. *Methods appendix*: a *Limitations* section
+  built only from what the project's record shows (few sources, suggestions from a model, no second coder,
+  a sample not chosen at random), and an optional *Researcher position* section made from your own diary
+  notes under "My position" (off unless you tick it). *Notes on a coded passage*: right-click a passage in
+  *Your codings* on the desktop, or open *Notes* under it on the web; a pencil marks a passage that has one.
+  *Two more example lists on a code*: *Close, but no* (looks right, is not) and *Unusual, but yes*. The help
+  and the beginner's guide say *respondent details* and *By group*, not "descriptor".
+* **Project file format 10.** The two new example lists add two columns to codes. A project from an earlier
+  version opens unchanged and is upgraded when opened; a project saved by this version cannot be opened by an
+  older one (it says so rather than guessing). The coding engine does not use the new lists.
 * **Update 3 on the web (4.13.0 test builds ux3 and later): one thing at a time.** The browser version opens
   on Home with three colour-coded activities (Surveys, Charts, Interviews), each a short list of steps with
   one main button and at most seven controls in view, matching the desktop screen for screen. Saved place

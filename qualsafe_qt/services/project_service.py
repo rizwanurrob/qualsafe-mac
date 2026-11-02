@@ -240,7 +240,9 @@ class ProjectService(QObject):
 
     def set_code_rules(self, code_id: str, *, use_when: Optional[str] = None,
                        leave_out_when: Optional[str] = None,
-                       examples: Optional[List[str]] = None) -> None:
+                       examples: Optional[List[str]] = None,
+                       near_misses: Optional[List[str]] = None,
+                       atypical_examples: Optional[List[str]] = None) -> None:
         """Save a code's coding rules: when to use it, when not to, examples.
 
         These are the codebook entries Saldaña (2013, p. 25) lists after Bernard
@@ -249,8 +251,47 @@ class ProjectService(QObject):
         """
         self.project.set_code_structured_fields(
             code_id, inclusion_criteria=use_when,
-            exclusion_criteria=leave_out_when, examples=examples)
+            exclusion_criteria=leave_out_when, examples=examples,
+            near_misses=near_misses, atypical_examples=atypical_examples)
         self.store_changed.emit()
+
+    # ── notes on one passage (book-audit F6) ────────────────────────────────
+    def passage_notes(self, excerpt_id: str):
+        from core import passage_notes
+
+        return passage_notes.notes_for(self.project, excerpt_id)
+
+    def passage_note_counts(self, excerpt_ids):
+        from core import passage_notes
+
+        return passage_notes.counts(self.project, excerpt_ids)
+
+    def add_passage_note(self, excerpt_id: str, text: str) -> str:
+        from core import passage_notes
+
+        note_id = passage_notes.add(self.project, excerpt_id, text)
+        self.store_changed.emit()
+        return note_id
+
+    def delete_passage_note(self, note_id: str) -> None:
+        self.project.delete_annotation(note_id)
+        self.store_changed.emit()
+
+    # ── the research question (book-audit F2) ───────────────────────────────
+    def research_question(self) -> str:
+        """The project's research question, or "" when none is set or no project is open."""
+        if self._project is None:
+            return ""
+        from core import research_question
+
+        return research_question.get(self.project)
+
+    def set_research_question(self, text: str) -> str:
+        from core import research_question
+
+        kept = research_question.set(self.project, text)
+        self.store_changed.emit()
+        return kept
 
     def set_code_parent(self, code_id: str, parent_id: Optional[str]) -> None:
         """Reparent. Raises ValueError on a move that would create a cycle."""

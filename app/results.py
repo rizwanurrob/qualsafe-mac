@@ -74,6 +74,9 @@ def _render_methods(store) -> None:
     st.number_input("Smallest number of answers a theme needs before agreement is worked out", 1, 30,
                     key="rep_ma_support",
                     help="With fewer answers than this, a figure would mean nothing, so none is shown.")
+    st.checkbox("Include my position (diary notes under “My position”)", key="rep_ma_position",
+                help="Off by default: it is personal. Adds a short section in your own words about what you "
+                     "bring to the study. To write it, add a note under “Notes on this whole project” (Analysis page) whose first line is “My position”.")
     if st.button("Make the appendix", key="rep_ma_btn", type="primary"):
         try:
             from exports.methods_appendix import build_methods_appendix
@@ -82,7 +85,8 @@ def _render_methods(store) -> None:
             note = note_path.read_text(encoding="utf-8") if note_path.exists() else ""
             out = build_methods_appendix(store, _scratch() / "methods_appendix.docx",
                                          min_support=int(st.session_state["rep_ma_support"]),
-                                         sampling_note=note)
+                                         sampling_note=note,
+                                         include_position=bool(st.session_state.get("rep_ma_position")))
             st.session_state["rep_ma"] = out.read_bytes()
         except Exception as exc:  # noqa: BLE001
             st.error(f"Could not make it: {exc}")

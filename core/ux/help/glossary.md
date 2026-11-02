@@ -1,49 +1,49 @@
 # Glossary
 
-The plain word comes first and the technical term second. Where QualSafe uses the plain word on screen, this is where to find what it stands for.
+The plain word is first. The technical term is second. QualSafe uses the plain word on the screen. This page tells you what each plain word means.
 
-**Theme** (also called a code). A short label for something people say, such as "Money worries". A set of them is your codebook.
+**Theme** (also called a code). A short label for something that people say. An example is "Money worries". A set of themes is your codebook.
 
-**Codebook.** Your list of codes, each with a name and, ideally, a short definition of what counts.
+**Codebook.** Your list of codes. Each code has a name. Ideally, each code also has a short definition of what counts.
 
-**Passage** (technical: excerpt). A stretch of text that is coded: a sentence in an interview, or one survey answer.
+**Passage** (technical: excerpt). A piece of text that you code. It is a sentence in an interview, or one survey answer.
 
-**Coder** (technical: rater). A person, or the computer, who applies codes. Agreement needs at least two.
+**Coder** (technical: rater). A person or the computer that applies codes. Agreement needs at least two coders.
 
-**Respondent details** (technical: descriptors or attributes). Columns that say something about the person, such as class year. They let you compare groups.
+**Respondent details** (technical: descriptors or attributes). Columns that give facts about a person. An example is class year. They let you compare groups.
 
-**Suggested code** (technical: zero-shot classification). A code QualSafe proposes from the theme's name alone, with no coded examples to learn from.
+**Suggested code** (technical: zero-shot classification). A code that QualSafe proposes from the name of the theme only. QualSafe has no coded examples to learn from.
 
-**Needs your review** (technical: uncertain). An answer where QualSafe was not confident. These are the ones to read first.
+**Needs your review** (technical: uncertain). An answer that QualSafe was not sure about. Read these answers first.
 
-**Agreement** (technical: Cohen's kappa, written κ). How far two coders agree beyond what chance alone would give. Reported for each code separately. Higher is better. Many researchers look for 0.6 or more, but the right bar depends on your field and your question.
+**Agreement** (technical: Cohen's kappa, written κ). It shows how far two coders agree, after you remove the agreement that chance gives. QualSafe reports it for each code separately. A higher number is better. Many researchers look for 0.6 or more. The correct limit depends on your field and your question.
 
-**Same answer %** (technical: percent agreement). The share of answers two coders coded the same way for a code. It looks high for a rare code even when coders disagree about every use of it, which is why agreement is shown as well.
+**Same answer %** (technical: percent agreement). The share of answers that two coders coded the same way for a code. For a rare code, this number looks high even when the coders disagree on every use of the code. For this reason, QualSafe also shows agreement.
 
-**How common** (technical: prevalence). The share of answers a code applies to.
+**How common** (technical: prevalence). The share of answers that a code applies to.
 
 **Quick preview.** A trial run on the first 50 answers. It writes nothing to your project.
 
-**Written codebook** (technical: structured coding). Coding where you write what counts and what does not for each code, and QualSafe reads each answer against it. It runs on your own computer.
+**Written codebook** (technical: structured coding). A way of coding. For each code, you write what counts and what does not count. QualSafe reads each answer against your text. It runs on your own computer.
 
-**Analysis engine.** The extra software that does the heavy computing. It is several gigabytes and is installed separately. Reading, hand coding, searching and reports work without it.
+**Analysis engine.** The extra software that does the heavy computing. It is several gigabytes. You install it separately. Reading, hand coding, searching, and reports work without it.
 
-**Local language model** (technical: LLM). An optional program on your own computer, used for a few extra suggestions. Nothing is sent to the internet.
+**Local language model** (technical: LLM). An optional program on your own computer. QualSafe uses it for a few extra suggestions. Nothing goes to the internet.
 
-**Offline mode.** QualSafe working without the internet. It is on whenever the status bar says so. The only thing that ever uses the internet is a download you ask for.
+**Offline mode.** QualSafe works without the internet. It is on when the status bar says so. Only a download that you ask for uses the internet.
 
-**Privacy check** (technical: PII scan). A scan for names, email addresses and numbers that could identify someone. It is a rough check and can miss things, so look through the file yourself too.
+**Privacy check** (technical: PII scan). A scan for names, email addresses, and numbers that can identify a person. It is a rough check and it can miss things. Also look through the file yourself.
 
-**Decision tree.** A set of yes-or-no questions that sorts people into groups, which you can read from top to bottom.
+**Decision tree.** A set of yes-or-no questions that sorts people into groups. You read it from the top to the bottom.
 
-**Random forest.** Many decision trees voting together. Usually more accurate than one tree, and harder to read.
+**Random forest.** Many decision trees that vote together. It is usually more accurate than one tree. It is harder to read.
 
-**p-value.** A number for how surprising your result would be if there were really nothing going on. It only means what it says if you chose what to test before you looked at the data.
+**p-value.** A number that shows how surprising your result is if nothing is really happening. It has this meaning only if you chose what to test before you looked at the data.
 
-**Lasso.** A way to predict an outcome that keeps only the details that help and shrinks the rest to nothing. It reports no p-values and no ranges, because the data chose which details to keep.
+**Lasso.** A way to predict an outcome. It keeps only the details that help. It shrinks the other details to nothing. It gives no p-values and no ranges. The data chose which details to keep.
 
-**Double lasso.** A way to estimate the effect of one thing on an outcome while allowing for many other details. It gives an estimate with a range (a confidence interval) that stays trustworthy even though the data picked which details to allow for. It does not report p-values.
+**Double lasso.** A way to estimate the effect of one thing on an outcome, while it allows for many other details. It gives an estimate with a range (a confidence interval). The range stays reliable although the data picked which details to allow for. It gives no p-values.
 
-**Folds** (technical: cross-validation). The data is split into parts, and each part takes a turn at being left out to test the result.
+**Folds** (technical: cross-validation). QualSafe splits the data into parts. Each part has a turn to be left out, to test the result.
 
-**Seed.** A number that makes the chance parts of an analysis repeatable.
+**Seed.** A number that makes the chance parts of an analysis repeat in the same way.

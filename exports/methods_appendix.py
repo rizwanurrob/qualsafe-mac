@@ -114,6 +114,55 @@ def reliability_tables(project, *, min_support: int = 5) -> Dict[str, pd.DataFra
     return out
 
 
+#: The diary topic whose notes the analyst can choose to put in the appendix (core/ux/guide.py MEMO_TOPICS).
+POSITION_TOPIC = "My position"
+
+
+def position_notes(project) -> List[str]:
+    """The researcher's own words about their position: diary notes written under "My position".
+
+    Only notes the analyst wrote (never a drafted memo), newest last, and only what they wrote after
+    the topic line. Used only when the analyst ticks the box: it is personal, so it is never added
+    by default. Book-audit F3 (Creswell ch. 10: say what you bring to the study).
+    """
+    notes: List[str] = []
+    memos = [m for m in project.list_memos("project") if getattr(m, "author", "human") == "human"]
+    for memo in sorted(memos, key=lambda m: m.created_at or ""):
+        first, _, rest = (memo.text or "").partition("\n")
+        if first.strip() == POSITION_TOPIC and rest.strip():
+            notes.append(rest.strip())
+    return notes
+
+
+def limitations(facts: Dict[str, Any], tables, sampling_note: str = "") -> List[str]:
+    """What this project's own record says limits it. Each line follows from a fact in the store.
+
+    Nothing here is boilerplate about qualitative research in general: a line appears only when the
+    store shows the condition. The analyst's own limits go in the diary ("A problem with the study").
+    """
+    out: List[str] = []
+    n = facts["n_sources"]
+    if n and n < 10:
+        out.append(f"The project holds {n} source(s). Counts from so few sources show where to read; they "
+                   "do not describe a wider group.")
+    if facts["machine_raters"]:
+        out.append("Some codings were suggested by a model. A suggestion is a draft: it is only as reliable "
+                   "as the review it received, and a count made from suggestions nobody reviewed should not "
+                   "be reported.")
+    if not tables:
+        out.append("No second coder coded a shared set of items, so no agreement figure is reported and "
+                   "the consistency of the coding has not been checked against another person.")
+    if len(facts["human_raters"]) <= 1 and not facts["machine_raters"]:
+        out.append("The human coding was done by one person.")
+    if facts["demo_codings"]:
+        out.append("Some codings come from the demonstration engine and are not coding; they must be "
+                   "removed before anything is reported.")
+    if sampling_note.strip():
+        out.append("The coding sample was not chosen at random (see Sampling above), so agreement on it "
+                   "may not hold for the whole corpus.")
+    return out
+
+
 CAVEATS = [
     "Kappa is reported per code as binary Cohen's kappa over the items both "
     "raters reviewed, including items a rater reviewed and applied no code to. "
@@ -136,6 +185,7 @@ def build_methods_appendix(
     min_support: int = 5,
     sampling_note: str = "",
     models: Optional[List[Tuple[Any, Any]]] = None,
+    include_position: bool = False,
 ) -> Path:
     """Write the appendix as a Word document. Returns the path.
 
@@ -168,6 +218,13 @@ def build_methods_appendix(
             f"QualSafe {facts['package_version']} · "
             f"project format v{facts['schema_version']}")
         run.font.size = Pt(9)
+
+        from core import research_question
+
+        question = research_question.get(project)
+        if question:
+            doc.add_heading("Research question", level=1)
+            doc.add_paragraph(question)
 
         # ── how the coding was produced ──
         doc.add_heading("Analysis procedure", level=1)
@@ -240,6 +297,24 @@ def build_methods_appendix(
             f"force when it was applied.")
         if models:
             _write_models(doc, models)
+
+        if include_position:
+            notes = position_notes(project)
+            doc.add_heading("Researcher position", level=1)
+            if notes:
+                for note in notes:
+                    doc.add_paragraph(note)
+            else:
+                doc.add_paragraph("No diary note under “My position” has been written yet.")
+
+        doc.add_heading("Limitations", level=1)
+        found = limitations(facts, tables, sampling_note)
+        for line in found:
+            doc.add_paragraph(line, style="List Bullet")
+        if not found:
+            doc.add_paragraph("The project record shows no further limit beyond those under “How to "
+                              "read these figures”. Add the limits only you know about from your "
+                              "diary notes (“A problem with the study”).")
 
         doc.add_heading("Data handling", level=1)
         doc.add_paragraph(PRIVACY_NOTE)

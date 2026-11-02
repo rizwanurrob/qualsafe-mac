@@ -351,6 +351,19 @@ def _migrate_8_to_9(conn: sqlite3.Connection) -> None:
 
 
 # version -> function that migrates *into* that version.
+def _migrate_9_to_10(conn: sqlite3.Connection) -> None:
+    """v9 -> v10: two more example lists on a code (book-audit F7).
+
+    Purely additive. `near_misses_json` holds passages that look as if they belong to the code but do not
+    ("close, but no"), and `atypical_json` holds real but unusual ones (Saldana 2013, p. 25). Both default to
+    an empty list, so every existing code opens unchanged. Idempotent: a column already there is skipped.
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(codes)")}
+    for column in ("near_misses_json", "atypical_json"):
+        if column not in existing:
+            conn.execute(f"ALTER TABLE codes ADD COLUMN {column} TEXT DEFAULT '[]'")
+
+
 MIGRATIONS: Dict[int, Callable[[sqlite3.Connection], None]] = {
     2: _migrate_1_to_2,
     3: _migrate_2_to_3,
@@ -360,6 +373,7 @@ MIGRATIONS: Dict[int, Callable[[sqlite3.Connection], None]] = {
     7: _migrate_6_to_7,
     8: _migrate_7_to_8,
     9: _migrate_8_to_9,
+    10: _migrate_9_to_10,
 }
 
 

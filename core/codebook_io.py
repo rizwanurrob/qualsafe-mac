@@ -39,6 +39,10 @@ def export_codebook_yaml(project) -> str:
             entry["exclusion_criteria"] = code.exclusion_criteria
         if code.examples:
             entry["examples"] = list(code.examples)
+        if code.near_misses:
+            entry["near_misses"] = list(code.near_misses)
+        if code.atypical_examples:
+            entry["atypical_examples"] = list(code.atypical_examples)
         entries.append(entry)
     return yaml.safe_dump({"codebook": entries}, sort_keys=False, allow_unicode=True)
 
@@ -70,7 +74,16 @@ def parse_codebook_yaml(text: str) -> List[Dict[str, Any]]:
             examples = [examples]
         if not isinstance(examples, list):
             raise ValueError(f"The examples for '{name}' must be a list.")
+        extra = {}
+        for key in ("near_misses", "atypical_examples"):
+            value = raw.get(key) or []
+            if isinstance(value, str):
+                value = [value]
+            if not isinstance(value, list):
+                raise ValueError(f"The {key.replace('_', ' ')} for '{name}' must be a list.")
+            extra[key] = [str(x).strip() for x in value if str(x).strip()]
         normalized.append({
+            **extra,
             "name": name,
             "definition": str(raw.get("definition", "") or ""),
             "parent": (str(raw["parent"]).strip() if raw.get("parent") else None),
@@ -112,7 +125,9 @@ def import_codebook_entries(project, entries: List[Dict[str, Any]]) -> Dict[str,
          "parent": e.get("parent") or None,
          "inclusion_criteria": e.get("inclusion_criteria") or None,
          "exclusion_criteria": e.get("exclusion_criteria") or None,
-         "examples": list(e.get("examples") or [])}
+         "examples": list(e.get("examples") or []),
+         "near_misses": list(e.get("near_misses") or []),
+         "atypical_examples": list(e.get("atypical_examples") or [])}
         for e in entries
     ]
     existing = {c.name: c.code_id for c in project.get_codebook()}
@@ -129,7 +144,8 @@ def import_codebook_entries(project, entries: List[Dict[str, Any]]) -> Dict[str,
             code_id="", name=entry["name"], definition=entry["definition"],
             origin=entry["origin"], created_by="human",
             inclusion_criteria=entry["inclusion_criteria"], exclusion_criteria=entry["exclusion_criteria"],
-            examples=entry["examples"]))
+            examples=entry["examples"], near_misses=entry["near_misses"],
+            atypical_examples=entry["atypical_examples"]))
         id_by_name[entry["name"]] = code_id
         created.append(entry["name"])
 

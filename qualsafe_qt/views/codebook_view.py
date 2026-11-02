@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QPushButton, QSplitter, QTabWidget, QTreeView, QVBoxLayout, QWidget,
 )
 
+from core import research_question
 from qualsafe_qt.commands import AddCodeCommand, EditCodeCommand, ReparentCodeCommand
 from qualsafe_qt.models.codebook_model import CodebookModel
 from qualsafe_qt.widgets.more_options import MoreOptions, count_controls
@@ -227,9 +228,28 @@ class CodebookView(QWidget):
         # which is the entire reason this screen exists.
         splitter.setSizes([900, 620])
 
+        # The research question sits above the codebook, where the person is deciding what the codes are for.
+        self.question_edit = QLineEdit()
+        self.question_edit.setPlaceholderText(research_question.PROMPT)
+        self.question_edit.setMaxLength(research_question.MAX_CHARS)
+        self.question_edit.setToolTip("Kept with the project, and shown on the coding screens, so it stays in "
+                                      "view while you code. It is your own wording; nothing is sent anywhere.")
+        self.question_edit.editingFinished.connect(self._save_question)
+        question_row = QHBoxLayout()
+        question_row.setContentsMargins(6, 6, 6, 0)
+        question_row.addWidget(QLabel(f"<b>{research_question.LABEL}</b>"))
+        question_row.addWidget(self.question_edit, 1)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.addLayout(question_row)
         layout.addWidget(splitter)
+
+    def _save_question(self) -> None:
+        if not self._service.is_open:
+            return
+        if research_question.clean(self.question_edit.text()) != self._service.research_question():
+            self._service.set_research_question(self.question_edit.text())
 
     def _build_code_tab(self) -> QWidget:
         self.name_edit = QLineEdit()
@@ -266,6 +286,19 @@ class CodebookView(QWidget):
         self.examples_edit.setToolTip(
             "Typical passages that carry this code, one per line. They stay in\n"
             "the project file; the audit trail records only how many.")
+
+        self.near_miss_edit = QPlainTextEdit()
+        self.near_miss_edit.setPlaceholderText("One passage per line that looks right but is not.")
+        self.near_miss_edit.setFixedHeight(54)
+        self.near_miss_edit.setToolTip(
+            "Passages that look as if they belong to this code but do not (close, but no),\n"
+            "one per line. Showing where the edge is helps a second coder, or you in a month.")
+        self.atypical_edit = QPlainTextEdit()
+        self.atypical_edit.setPlaceholderText("One unusual passage per line that still fits.")
+        self.atypical_edit.setFixedHeight(54)
+        self.atypical_edit.setToolTip(
+            "Real examples of this code that are unusual, one per line. They stop the code\n"
+            "being read more narrowly than you mean it.")
 
         self.parent_label = QLabel("—")
         self.uses_label = QLabel("—")
@@ -309,6 +342,8 @@ class CodebookView(QWidget):
         rules_form.addRow("Use this code when", self.use_when_edit)
         rules_form.addRow("Leave it out when", self.leave_out_edit)
         rules_form.addRow("Examples", self.examples_edit)
+        rules_form.addRow("Close, but no", self.near_miss_edit)
+        rules_form.addRow("Unusual, but yes", self.atypical_edit)
         self.rules_more = MoreOptions("Coding rules")
         self.rules_more.body_layout.addLayout(rules_form)
         self.rules_more._count = count_controls(self.rules_more.body)
@@ -465,8 +500,13 @@ class CodebookView(QWidget):
             self.memo_list.clear()
             self.diary_list.clear()
             self._set_editor_enabled(False)
+            self.question_edit.setEnabled(False)
+            self.question_edit.clear()
             return
 
+        self.question_edit.setEnabled(True)
+        if not self.question_edit.hasFocus():
+            self.question_edit.setText(self._service.research_question())
         codes = self._service.codebook()
         frequency = self._service.code_frequency()
         self.model.set_codebook(codes, frequency)
@@ -550,7 +590,8 @@ class CodebookView(QWidget):
     # -- selection -----------------------------------------------------------
     def _set_editor_enabled(self, enabled: bool) -> None:
         for widget in (self.name_edit, self.definition_edit, self.use_when_edit,
-                       self.leave_out_edit, self.examples_edit, self.save_button):
+                       self.leave_out_edit, self.examples_edit, self.near_miss_edit,
+                       self.atypical_edit, self.save_button):
             widget.setEnabled(enabled)
         if not enabled:
             self.name_edit.clear()
@@ -558,6 +599,8 @@ class CodebookView(QWidget):
             self.use_when_edit.clear()
             self.leave_out_edit.clear()
             self.examples_edit.clear()
+            self.near_miss_edit.clear()
+            self.atypical_edit.clear()
             self.parent_label.setText("—")
             self.uses_label.setText("—")
 
@@ -583,6 +626,8 @@ class CodebookView(QWidget):
         self.use_when_edit.setPlainText(code.inclusion_criteria or "")
         self.leave_out_edit.setPlainText(code.exclusion_criteria or "")
         self.examples_edit.setPlainText("\n".join(code.examples or []))
+        self.near_miss_edit.setPlainText("\n".join(code.near_misses or []))
+        self.atypical_edit.setPlainText("\n".join(code.atypical_examples or []))
         parent = self.model.code(code.parent_id or "")
         self.parent_label.setText(parent.name if parent else "(top level)")
         self.uses_label.setText(str(self._service.code_frequency().get(code_id, 0)))
@@ -652,6 +697,10 @@ class CodebookView(QWidget):
         leave_out = self.leave_out_edit.toPlainText().strip()
         examples = [line.strip() for line in
                     self.examples_edit.toPlainText().splitlines() if line.strip()]
+        near_misses = [line.strip() for line in
+                       self.near_miss_edit.toPlainText().splitlines() if line.strip()]
+        atypical = [line.strip() for line in
+                    self.atypical_edit.toPlainText().splitlines() if line.strip()]
         self._undo.push(EditCodeCommand(
             self._service, code_id, name,
             self.definition_edit.toPlainText().strip()))
@@ -662,11 +711,13 @@ class CodebookView(QWidget):
         rules_changed = stored is not None and (
             use_when != (stored.inclusion_criteria or "").strip()
             or leave_out != (stored.exclusion_criteria or "").strip()
-            or examples != [e.strip() for e in (stored.examples or [])])
+            or examples != [e.strip() for e in (stored.examples or [])]
+            or near_misses != [e.strip() for e in (stored.near_misses or [])]
+            or atypical != [e.strip() for e in (stored.atypical_examples or [])])
         if rules_changed:
             self._service.set_code_rules(
                 code_id, use_when=use_when, leave_out_when=leave_out,
-                examples=examples)
+                examples=examples, near_misses=near_misses, atypical_examples=atypical)
             self.status.emit(
                 f"Saved '{name}' and its coding rules.  "
                 "(Ctrl+Z undoes the name and definition only.)")

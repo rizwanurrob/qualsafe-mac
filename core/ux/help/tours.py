@@ -39,12 +39,12 @@ def tour(activity_key: str) -> Tuple[Card, ...]:
     names = ", ".join(s.title for s in activity.steps)
     return (
         Card(f"{activity.title} has {len(activity.steps)} steps",
-             f"Work along the row: {names}. You can go back to any step, and QualSafe "
+             f"Work along the row: {names}. You can go back to any step. QualSafe "
              "keeps your place.", "rail"),
         Card("One main button",
              "Each step has one filled button. It is usually what to press next.", "main"),
-        Card("Less-used choices are folded away",
-             "Open More options to see the rest. The usual settings work for most files.",
+        Card("Less-used choices are under More options",
+             "Open More options to see the other choices. The usual settings work for most files.",
              "more"),
         Card("Help for the step you are on",
              "This opens a short article. The small i beside a choice explains that "

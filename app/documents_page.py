@@ -35,6 +35,15 @@ from privacy.scan import scan_frame, summarize_findings
 _READER_PAGE_CHARS = 6000
 
 
+def _show_research_question(proj) -> None:
+    """The research question, kept in view while coding (book-audit F2). Text, not a control."""
+    from core import research_question
+
+    text = research_question.get(proj)
+    if text:
+        st.markdown(f"**{research_question.LABEL}:** {text}")
+
+
 def render_documents_page(store_path: Optional[Path], part: str = "all") -> None:
     """Transcripts. `part` is "add" (Interviews, step 1: bring them in), "code" (step 2: read them
     with your coding in the margin, and code them) or "all" (the three tabs, as before)."""
@@ -43,6 +52,8 @@ def render_documents_page(store_path: Optional[Path], part: str = "all") -> None
         return
 
     with Project.open(store_path) as proj:
+        if part in ("code", "all"):
+            _show_research_question(proj)
         if part == "add":
             _render_library(proj)
         elif part == "code":
@@ -615,6 +626,30 @@ def _render_paste_and_code(proj, source_id, chosen, new_code, in_vivo, analyst,
             st.error(str(exc))
 
 
+def _render_passage_notes(proj, excerpt_id: str) -> None:
+    """Notes on one passage (book-audit F6): shown inside a closed box, so a long list stays short."""
+    from core import passage_notes
+
+    notes = passage_notes.notes_for(proj, excerpt_id)
+    label = f"{passage_notes.MARK} Notes ({len(notes)})" if notes else "Add a note"
+    with st.expander(label):
+        for note in notes:
+            c1, c2 = st.columns([8, 1])
+            c1.markdown(f"{passage_notes.MARK} {html.escape(note.text)}")
+            if c2.button("Delete", key=f"pn_del_{note.annotation_id}"):
+                proj.delete_annotation(note.annotation_id)
+                st.rerun()
+        text = st.text_area("Your note", key=f"pn_text_{excerpt_id}", height=70, label_visibility="collapsed",
+                            max_chars=passage_notes.MAX_CHARS, placeholder="A note on this passage")
+        if st.button("Save note", key=f"pn_add_{excerpt_id}"):
+            try:
+                passage_notes.add(proj, excerpt_id, text)
+            except ValueError:
+                st.warning("Write something first.")
+            else:
+                st.rerun()
+
+
 def _render_my_codings(proj, source_id, text, analyst, remove_coding, rater_id) -> None:
     st.divider()
     st.subheader("Your codings in this document")
@@ -629,6 +664,7 @@ def _render_my_codings(proj, source_id, text, analyst, remove_coding, rater_id) 
             st.markdown(f"> {html.escape(quote[:300])}" + ("…" if len(quote) > 300 else ""))
             r1, r2, r3 = st.columns([3, 2, 1])
             r1.caption("**" + ", ".join(span["codes"]) + "**")
+            _render_passage_notes(proj, span["excerpt_id"])
             which = r2.selectbox("Remove", ["(all)"] + span["codes"],
                                  key=f"rm_pick_{span['excerpt_id']}",
                                  label_visibility="collapsed")
