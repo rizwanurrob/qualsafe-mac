@@ -21,7 +21,7 @@ SURFACES = (DESKTOP, WEB)
 # Every screen that exists today (V8_PLAN.md section 3.5), per front end.
 DESKTOP_SCREENS: Tuple[str, ...] = (
     "Documents", "Codebook", "Analysis", "Charts", "Data Charts", "Modelling",
-    "Search", "Query", "Survey", "Reports", "Data", "Models", "Help",
+    "Search", "Query", "Survey", "Reports", "Data", "Models", "Help", "Review",
 )
 WEB_SCREENS: Tuple[str, ...] = (
     "Data Setup", "Theme Setup", "Run Analysis", "Iterative Labeling Lab",
@@ -85,7 +85,7 @@ SURVEYS = Activity(
              more=_s((), ("Iterative Labeling Lab", "Alt Survey Flow"))),
         Step("explore", "Explore",
              "Read the results: how often each theme comes up, and for whom.",
-             screens=_s(("Analysis", "Charts", "Search", "Modelling"),
+             screens=_s(("Review", "Analysis", "Charts", "Search", "Modelling"),
                         ("Analysis", "Chart Builder", "Search", "Modelling")),
              more=_s(("Query",), ("Query & Synthesis",))),
         Step("report", "Report",

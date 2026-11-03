@@ -32,6 +32,7 @@ from qualsafe_qt.version import APP_NAME
 
 #: Plain names for the tabs inside a step. Anything not listed keeps its own name.
 SCREEN_TITLES: Dict[str, str] = {
+    "Review": "Review answers",
     "Charts": "Charts of themes",
     "Modelling": "Model an outcome",
     "Data Charts": "Charts",

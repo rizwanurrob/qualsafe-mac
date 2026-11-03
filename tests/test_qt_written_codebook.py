@@ -487,3 +487,23 @@ def test_the_engine_run_is_not_listed_among_the_coders(big_view, app, service):
     _code_the_sample(big_view, app)
     others = {r.rater_id for r in service.project.list_raters() if r.rater_id != "human_primary"}
     assert others and not others & set(selectable_raters(service.project))
+
+
+def test_save_all_scores_writes_one_row_per_answer_and_theme(big_view, app, monkeypatch, tmp_path):
+    big_view.go_stage("review")
+    out = tmp_path / "all.csv"
+    monkeypatch.setattr(big_view, "_ask_save_path", lambda default: str(out))
+    assert big_view.save_all_scores() == str(out)
+    frame = pd.read_csv(out)
+    assert list(frame.columns)[:5] == ["answer_id", "answer", "theme", "model_score", "engine_applied_it"]
+    assert set(frame["theme"]) == {"Money", "Support"}
+    assert len(frame) == len(BIG) * 2
+    assert frame.groupby("answer_id")["model_score"].apply(lambda s: s.is_monotonic_decreasing).all()
+
+
+def test_save_all_scores_is_folded_and_says_so_before_a_run(view, tmp_path, monkeypatch):
+    view.go_stage("review")
+    assert not view.save_scores_button.isVisibleTo(view)
+    monkeypatch.setattr(view, "_ask_save_path", lambda default: str(tmp_path / "x.csv"))
+    assert view.save_all_scores() is None
+    assert not (tmp_path / "x.csv").exists()

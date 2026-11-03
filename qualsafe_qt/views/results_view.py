@@ -394,8 +394,16 @@ class ResultsView(QWidget):
         _joint_row.addWidget(QLabel("Compare across:"))
         _joint_row.addWidget(self.joint_descriptor, 1)
 
+        # The two choices that most people leave alone sit behind one fold, so the step shows seven
+        # controls or fewer.
+        self.methods_more = MoreOptions("More options")
+        self.methods_more.body_layout.addWidget(self._min_support_row)
+        self.methods_more.body_layout.addWidget(self.methods_position)
+        self.methods_more._count = 2
+        self.methods_more._refresh_title()
+
         options = {
-            "methods": [self._min_support_row, self.methods_position],
+            "methods": [self.methods_more],
             "joint": [self._joint_descriptor_row, self.joint_normalize,
                       self.joint_quotes],
             "codebook": [self.codebook_examples],

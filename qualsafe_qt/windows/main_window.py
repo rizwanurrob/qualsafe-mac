@@ -54,6 +54,7 @@ from qualsafe_qt.views.models_view import ModelsView
 from qualsafe_qt.views.pipeline_view import PipelineView
 from qualsafe_qt.views.query_view import QueryView
 from qualsafe_qt.views.results_view import ResultsView
+from qualsafe_qt.views.review_view import ReviewView
 from qualsafe_qt.views.search_view import SearchView
 
 ORGANIZATION = "QualSafe"
@@ -122,6 +123,7 @@ class MainWindow(QMainWindow):
         self.charts = ChartsView(self._service, self._undo, self)
         self.data_charts = DataChartsView(self._service, self._undo, self)
         self.search = SearchView(self._service, self._undo, self)
+        self.review = ReviewView(self._service, self)
         self.query = QueryView(self._service, self._undo, self)
         self.pipeline = PipelineView(self._service, self._undo, self)
         self.data = DataView(self._service, self._undo, self)
@@ -139,7 +141,7 @@ class MainWindow(QMainWindow):
                 "Documents": self.documents, "Codebook": self.codebook,
                 "Analysis": self.analysis, "Charts": self.charts,
                 "Data Charts": self.data_charts, "Modelling": self.modelling,
-                "Search": self.search, "Query": self.query, "Reports": self.results,
+                "Search": self.search, "Query": self.query, "Reports": self.results, "Review": self.review,
                 "Survey/Data": self.pipeline, "Survey/Themes": self.pipeline,
                 "Survey/Run": self.pipeline,
             },
@@ -169,6 +171,7 @@ class MainWindow(QMainWindow):
         shell_layout.addWidget(self.pages, 1)
         self.setCentralWidget(shell)
         self.top_bar.home_requested.connect(self.go_home)
+        self.review.review_unsure_requested.connect(self.open_review_step)
         self.top_bar.settings_requested.connect(self.open_settings_page)
         self.top_bar.help_requested.connect(self.open_help)
         self.general.analyst_name_changed.connect(self._save_analyst_name)
@@ -330,6 +333,13 @@ class MainWindow(QMainWindow):
         self.pages.setCurrentWidget(self.home)
         self.top_bar.set_location()
         self.home.start_buttons["surveys"].setFocus()
+
+    def open_review_step(self) -> None:
+        """The Review shortcut: the step that checks what the engine was unsure about."""
+        self.open_activity("surveys", "code")
+        self.pipeline.tabs.setCurrentIndex(2)
+        self.pipeline.choice_buttons["codebook"].setChecked(True)
+        self.pipeline.written.go_stage("review")
 
     def open_activity(self, key: str, step: Optional[str] = None) -> None:
         """Show an activity at `step`: where it was left this session, else its

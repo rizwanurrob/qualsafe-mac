@@ -427,7 +427,7 @@ app = QApplication([])
 # build for the wrong reason -- which it did once, when Reports and Data arrived.
 VIEWS = ["documents_view", "codebook_view", "analysis_view", "charts_view",
          "data_charts_view", "model_view", "search_view", "query_view", "pipeline_view",
-         "results_view", "data_view", "models_view", "help_view"]
+         "results_view", "data_view", "models_view", "help_view", "review_view"]
 for name in VIEWS:
     importlib.import_module("qualsafe_qt.views." + name)
 

@@ -313,6 +313,13 @@ class WrittenCodebookView(QWidget):
         more = MoreOptions("More options")
         more.add_row("Reviewing as", self.reviewer_edit)
         more.body_layout.addWidget(self.accept_all_button)
+        self.save_scores_button = QPushButton("Save all scores…")
+        self.save_scores_button.setToolTip(
+            "A spreadsheet with one row for each answer and theme: the answer, the model score, "
+            "whether the engine applied the theme, and what you decided. The scores are model scores, "
+            "not probabilities.")
+        self.save_scores_button.clicked.connect(self.save_all_scores)
+        more.body_layout.addWidget(self.save_scores_button)
         more._count = count_controls(more.body)
         more._refresh_title()
         self.review_more = more
@@ -541,6 +548,31 @@ class WrittenCodebookView(QWidget):
 
     def _ask_save_path(self, default: str) -> str:
         path, _ = QFileDialog.getSaveFileName(self, "Save", default, "Spreadsheet (*.csv)")
+        return path
+
+    def save_all_scores(self) -> Optional[str]:
+        """Every score of the current run: one row for each answer and theme, including the themes the
+        engine did not apply. It holds the answer text, so it is a file you choose to write."""
+        run = self._current_run()
+        if not run or not self._service.is_open:
+            self._say("Run the coding first: there are no scores to save yet.")
+            return None
+        table = self._service.project.coding_decisions_table(run)
+        if table.empty:
+            self._say("This run has no scores to save.")
+            return None
+        path = self._ask_save_path("all_scores.csv")
+        if not path:
+            return None
+        from analyze_survey import sanitize_frame_for_csv
+        keep = ["excerpt_id", "excerpt_text", "code_name", "model_score", "model_assigned",
+                "review_status", "human_assigned", "reviewer", "reviewed_at", "note"]
+        out = table[[c for c in keep if c in table.columns]].rename(columns={
+            "excerpt_id": "answer_id", "excerpt_text": "answer", "code_name": "theme",
+            "model_assigned": "engine_applied_it", "human_assigned": "you_decided_it_applies"})
+        out = out.sort_values(["answer_id", "model_score"], ascending=[True, False])
+        sanitize_frame_for_csv(out).to_csv(path, index=False)
+        self._say(f"Saved {Path(path).name}. The scores are model scores, not probabilities.", "success")
         return path
 
     def save_table(self) -> Optional[str]:

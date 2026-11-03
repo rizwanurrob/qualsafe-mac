@@ -40,8 +40,9 @@ def test_role_dispatch_uses_expected_loader(monkeypatch):
     seen = {}
 
     class FakeST:
-        def __init__(self, name):
+        def __init__(self, name, **kwargs):
             seen["st"] = name
+            seen["st_kwargs"] = kwargs
 
     def fake_pipeline(task, model=None, truncation=None):
         seen[task] = model
